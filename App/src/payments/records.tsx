@@ -3,7 +3,7 @@ import { Platform, Pressable, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { api } from '../api';
 import { useApp } from '../session';
-import { dateLabel, filterPayments, money, receiptText, statusLabel, type Payment, type Target } from './domain';
+import { dateLabel, filterPayments, money, paymentMethodLabel, receiptText, statusLabel, type Payment, type Target } from './domain';
 import { exportReceipt } from './exportReceipt';
 import { Button, Card, Copy, Divider, Icon, IconTile, Info, Line, Loading, Notice, Page, Pill, TextLink, palette } from './ui';
 
@@ -50,7 +50,7 @@ export function HistoryScreen() {
         </Pressable>
       </View>;
     }) : <Card><IconTile name="receipt" size={64} /><Copy kind="heading">{filter === 'all' ? 'Your story starts here' : 'No ' + statusLabel(filter).toLowerCase() + ' payments'}</Copy><Copy color={palette.muted}>Payments will appear here when you complete a care order or choose a plan.</Copy><TextLink onPress={() => router.push('/payments/plans')}>Explore care plans</TextLink></Card>}
-    {!loading && rows.length ? <Copy kind="caption" center color={palette.muted}>Your most recent {rows.length} payments · Demo records</Copy> : null}
+    {!loading && rows.length ? <Copy kind="caption" center color={palette.muted}>Your most recent {rows.length} payments</Copy> : null}
     <TextLink onPress={refresh}>Refresh payments</TextLink>
   </Page>;
 }
@@ -81,7 +81,7 @@ export function ResultScreen() {
   const success = status === 'successful';
   const failed = status === 'failed';
   const title = success ? (isPlan ? 'Your family,\nin good hands.' : 'Payment\ncomplete.') : failed ? 'Let’s try\nthat again.' : 'Just a moment.';
-  const subtitle = success ? 'Your demo payment is complete.' : failed ? 'Your payment couldn’t be completed.' : 'We’re waiting for your payment confirmation.';
+  const subtitle = success ? 'Your payment is complete.' : failed ? 'Your payment couldn’t be completed.' : 'We’re waiting for your payment confirmation.';
   const footer = <>
     {payment || unknown ? success ? <Button onPress={() => router.replace({ pathname: '/payments/receipt', params: { id: payment!.id } })}>View receipt</Button> : failed ? <Button onPress={() => router.replace(target ? { pathname: '/payments/checkout', params: { kind: target.kind, id: target.id } } : '/payments/plans')}>Try again</Button> : <Button busy={checking} onPress={checkStatus}>Check payment status</Button> : null}
     <TextLink onPress={() => router.replace('/payments')}>Go to payment history</TextLink>
@@ -93,7 +93,7 @@ export function ResultScreen() {
       <Card>
         <Pill tone={success ? 'lime' : failed ? 'red' : 'amber'}>{success ? 'PAID' : failed ? 'NOT COMPLETED' : 'AWAITING CONFIRMATION'}</Pill>
         {payment ? <><Copy kind="display">{money(payment.amount)}</Copy><Divider /><Line label="Reference" value={payment.transactionRef} /><Line label="Service" value={payment.serviceLabel || 'Care payment'} />
-          {success ? <><Line label="Paid with" value={payment.provider === 'demo' ? 'Demo payment' : payment.provider || 'Not recorded'} /><Line label="Date" value={dateLabel(payment.paidAt || payment.createdAt)} /></> : null}
+          {success ? <><Line label="Paid with" value={paymentMethodLabel(payment.provider)} /><Line label="Date" value={dateLabel(payment.paidAt || payment.createdAt)} /></> : null}
         </> : null}
         <Copy color={palette.muted}>{success ? 'You can find this record any time in Payment history.' : failed ? 'Your order is saved. Review your details before trying again.' : 'Your payment is still being checked. Please do not pay again until the result is confirmed.'}</Copy>
         {!success && !failed ? <Copy color={palette.muted}>You can leave this screen and check your payment history later.</Copy> : null}
@@ -124,9 +124,9 @@ export function ReceiptScreen() {
       <Card>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Copy kind="heading" color={palette.forest}>suva voice</Copy><Icon name="receipt" size={28} /></View>
         <Pill tone="lime">PAYMENT SUCCESSFUL</Pill><Copy kind="display">{money(payment.amount)}</Copy><Divider />
-        <Line label="Reference" value={payment.transactionRef} /><Line label="Date" value={dateLabel(payment.paidAt || payment.createdAt)} /><Line label="Payment method" value={payment.provider === 'demo' ? 'Demo payment' : payment.provider || 'Not recorded'} />
+        <Line label="Reference" value={payment.transactionRef} /><Line label="Date" value={dateLabel(payment.paidAt || payment.createdAt)} /><Line label="Payment method" value={paymentMethodLabel(payment.provider)} />
         <Divider /><Copy kind="heading">{payment.serviceLabel || 'Care payment'}</Copy><Line label="Total paid" value={money(payment.amount)} strong /><Divider />
-        <Copy kind="caption" color={palette.muted}>Thank you for choosing Suva Voice.</Copy><Copy kind="caption" color={palette.muted}>Demo record · No real card was charged</Copy>
+        <Copy kind="caption" color={palette.muted}>Thank you for choosing Suva Voice.</Copy>
       </Card>
     </>}
   </Page>;

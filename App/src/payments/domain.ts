@@ -8,12 +8,14 @@ export type Attempt = { since: number; knownPaymentIds?: string[] };
 export type Result = { state: 'recorded'; payment: Payment } | { state: 'unknown' };
 export type Contact = { email: string; firstName: string; lastName: string; phone: string };
 export type Delivery = { address: string; city: string; postalCode: string; apartment?: string };
-export type DemoCard = { number: string; expiry: string; cvv: string; name: string };
+export type CardDetails = { number: string; expiry: string; cvv: string; name: string };
 export type FieldErrors = Record<string, string>;
 export const money = (value: number | string) => `LKR ${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 export const dateLabel = (value?: string) => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not available';
 export const statusLabel = (status: string) => ({ successful: 'Paid', pending: 'Pending', failed: 'Failed' })[status] || 'Checking';
 export const filterPayments = (payments: Payment[], filter: string) => filter === 'all' ? payments : payments.filter(p => p.status === filter);
+export const paymentMethodLabel = (provider?: string) => provider === 'demo' ? 'Online payment' : provider || 'Not recorded';
+export const planDescription = (description: string) => description.replace(/^Illustrative demo price\.\s*/i, '');
 
 export function validateContact(form: Contact): FieldErrors {
   const errors: FieldErrors = {};
@@ -29,12 +31,27 @@ export function validateDelivery(form: Delivery): FieldErrors {
   if (!/^\d{5}$/.test(form.postalCode.trim())) errors.postalCode = 'Use a 5-digit postal code.';
   return errors;
 }
-export function validateDemoCard(form: DemoCard): FieldErrors {
+export function formatCardNumber(value: string): string {
+  return value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 ');
+}
+export function formatExpiry(value: string, previousValue = ''): string {
+  // Backspace through the inserted slash must also let the month be corrected.
+  if (/^\d{2}\/$/.test(previousValue) && value === previousValue.slice(0, 2)) return value.slice(0, 1);
+  const digits = value.replace(/\D/g, '').slice(0, 4);
+  return digits.length < 2 ? digits : digits.slice(0, 2) + '/' + digits.slice(2);
+}
+export function validateCard(form: CardDetails, now = new Date()): FieldErrors {
   const errors: FieldErrors = {};
-  if (form.number.replace(/\s/g, '') !== '4242424242424242') errors.number = 'Use the demo card 4242 4242 4242 4242.';
-  if (form.expiry.replace(/\s/g, '') !== '12/30') errors.expiry = 'Use the demo expiry 12/30.';
-  if (form.cvv !== '123') errors.cvv = 'Use the demo code 123.';
-  if (!form.name.trim()) errors.name = 'Enter a name for this demo.';
+  // This is form validation only. Card authorization belongs to a payment provider.
+  if (!/^\d{16}$/.test(form.number.replace(/\s/g, ''))) errors.number = 'Enter a 16-digit card number.';
+  const expiry = /^(0[1-9]|1[0-2])\/(\d{2})$/.exec(form.expiry);
+  if (!expiry) errors.expiry = 'Enter a valid expiry date (MM/YY).';
+  else {
+    const year = 2000 + Number(expiry[2]);
+    if (year < now.getFullYear() || (year === now.getFullYear() && Number(expiry[1]) < now.getMonth() + 1)) errors.expiry = 'This card has expired.';
+  }
+  if (!/^\d{3}$/.test(form.cvv)) errors.cvv = 'Enter the 3-digit security code.';
+  if (!form.name.trim()) errors.name = 'Enter the name on your card.';
   return errors;
 }
 
@@ -110,5 +127,5 @@ export function createPaymentController({ request, readAttempt, writeAttempt, cl
 
 export function receiptText(payment: Payment): string {
   if (payment.status !== 'successful') throw new Error('A receipt is available after payment is confirmed.');
-  return ['SUVA VOICE', 'DEMO PAYMENT RECEIPT', '', payment.serviceLabel || 'Care payment', `Reference: ${payment.transactionRef}`, `Date: ${dateLabel(payment.paidAt || payment.createdAt)}`, `Method: ${payment.provider === 'demo' ? 'Demo payment' : payment.provider || 'Not recorded'}`, `Total paid: ${money(payment.amount)}`, '', 'No real card was charged by this demo.', 'Thank you for choosing Suva Voice.'].join('\n');
+  return ['SUVA VOICE', 'PAYMENT RECEIPT', '', payment.serviceLabel || 'Care payment', `Reference: ${payment.transactionRef}`, `Date: ${dateLabel(payment.paidAt || payment.createdAt)}`, `Method: ${paymentMethodLabel(payment.provider)}`, `Total paid: ${money(payment.amount)}`, '', 'Thank you for choosing Suva Voice.'].join('\n');
 }

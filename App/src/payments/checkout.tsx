@@ -3,7 +3,7 @@ import { Keyboard, Pressable, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { api } from '../api';
 import { useApp } from '../session';
-import { money, validateContact, validateDelivery, validateDemoCard, type FieldErrors, type Target, type Result } from './domain';
+import { money, planDescription, validateContact, validateDelivery, validateCard, formatCardNumber, formatExpiry, type FieldErrors, type Target, type Result } from './domain';
 import { Button, Card, Check, Copy, Divider, Field, Icon, IconTile, Info, Line, Loading, Notice, Page, Pill, TextLink, palette } from './ui';
 
 type Plan = { id: string; name: string; priceLkr: string; billingPeriod: string; description: string; services: string[] };
@@ -24,11 +24,10 @@ export function PlansScreen() {
     {loading || error ? <Loading error={error} retry={refresh} /> : plans.length ? plans.map(plan => <Card key={plan.id} tone={current === plan.id ? 'soft' : 'sage'}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Pill tone="screen">{current === plan.id ? 'CURRENT PLAN' : plan.billingPeriod.toUpperCase() + ' PLAN'}</Pill><Icon name="leaf" /></View>
       <IconTile name="heart" size={72} tone="screen" /><Copy kind="title">{plan.name}</Copy>
-      <Copy color={palette.muted}>{plan.description}</Copy><Copy kind="title">{money(plan.priceLkr)}<Copy color={palette.muted}>{' / ' + period(plan.billingPeriod)}</Copy></Copy>
+      <Copy color={palette.muted}>{planDescription(plan.description)}</Copy><Copy kind="title">{money(plan.priceLkr)}<Copy color={palette.muted}>{' / ' + period(plan.billingPeriod)}</Copy></Copy>
       {(plan.services || []).map(service => <Copy kind="label" key={service}>{'✓ ' + service}</Copy>)}
       <Button disabled={current === plan.id} onPress={() => router.push({ pathname: '/payments/checkout', params: { kind: 'plan', id: plan.id } })}>{current === plan.id ? 'Your current plan' : 'Review this plan'}</Button>
     </Card>) : <Notice text="No plans are available at the moment. Please check again later." />}
-    <Copy kind="caption" center color={palette.muted}>Demo subscriptions · No real card is charged</Copy>
   </Page>;
 }
 
@@ -96,7 +95,7 @@ export function CheckoutScreen() {
       const deliveryIssues = hasDelivery ? validateDelivery(delivery) : {};
       if (Object.keys(deliveryIssues).length) { changeStep(3); setErrors(deliveryIssues); return; }
     }
-    const issues = { ...(Number(amount) > 0 ? validateDemoCard(card) : {}), ...(!sameBilling ? Object.fromEntries(Object.entries(validateDelivery(billing)).map(([key, value]) => ['billing_' + key, value])) : {}) };
+    const issues = { ...(Number(amount) > 0 ? validateCard(card) : {}), ...(!sameBilling ? Object.fromEntries(Object.entries(validateDelivery(billing)).map(([key, value]) => ['billing_' + key, value])) : {}) };
     setErrors(issues);
     if (Object.keys(issues).length) return;
     pressLock.current = true; setBusy(true); setError(''); Keyboard.dismiss();
@@ -107,7 +106,6 @@ export function CheckoutScreen() {
   const title = isPlan ? (step === 1 ? 'Care for the\nwhole family.' : 'One step\nto more care.') : ['A little care,\non its way.', 'Let’s stay\nin touch.', hasDelivery ? 'Where should\nwe deliver?' : 'Your care,\nall arranged.', 'A little closer\nto peace of mind.'][step - 1];
   const subtitle = isPlan ? (step === 1 ? 'Review your plan before continuing.' : 'Choose how to pay for ' + (plan?.name || 'your plan') + '.') : ['Review your order before you continue.', 'Review your contact details for this checkout.', hasDelivery ? 'Choose where your care essentials arrive.' : 'Confirm the service requested for your loved one.', 'Choose how you’d like to pay.'][step - 1];
   const footer = !loading && amount !== undefined ? <>
-    <Copy kind="caption" center color={palette.muted}>Demo checkout · No real money is charged</Copy>
     {existing ? <Button onPress={() => showResult({ state: 'recorded', payment: { ...existing, orderId: order?.id } })}>View payment status</Button> : <Button disabled={blocked} busy={busy} onPress={step === 4 ? pay : next}>{blocked ? 'Payment unavailable' : step === 4 ? (Number(amount) === 0 ? 'Activate free plan' : 'Pay ' + money(amount)) : isPlan ? 'Continue to payment' : ['Continue to contact', hasDelivery ? 'Continue to delivery' : 'Review service', 'Continue to payment'][step - 1]}</Button>}
   </> : null;
 
@@ -118,7 +116,7 @@ export function CheckoutScreen() {
         <Card tone="sage">
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Pill tone="screen">{plan.billingPeriod.toUpperCase() + ' PLAN'}</Pill><Icon name="leaf" /></View>
           <IconTile name="heart" size={86} tone="screen" /><Copy kind="title">{plan.name}</Copy>
-          <Copy color={palette.muted}>{plan.description}</Copy><Copy kind="display">{money(plan.priceLkr)}</Copy><Copy color={palette.muted}>{'per ' + period(plan.billingPeriod)}</Copy>
+          <Copy color={palette.muted}>{planDescription(plan.description)}</Copy><Copy kind="display">{money(plan.priceLkr)}</Copy><Copy color={palette.muted}>{'per ' + period(plan.billingPeriod)}</Copy>
           <Divider /><Line label="Billing period" value={'One ' + period(plan.billingPeriod)} /><Line label="Total today" value={money(plan.priceLkr)} strong />
         </Card>
         <Info name="shield" title={'One simple ' + plan.billingPeriod + ' payment'} detail="Review your subscription in the app." />
@@ -132,7 +130,7 @@ export function CheckoutScreen() {
           {(order.items || []).map(item => <Line key={item.id} label={item.name + ' × ' + item.quantity} value={money(item.lineTotal)} />)}
           <Line label="Order total" value={money(order.totalAmount)} />
         </Card>
-        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-end' }}><Field label="Have a discount code?" placeholder="Enter code" value={promo} onChangeText={setPromo} /><Button secondary onPress={() => setPromoMessage('Promo codes are not available for demo payments.')}>Apply</Button></View>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-end' }}><Field label="Have a discount code?" placeholder="Enter code" value={promo} onChangeText={setPromo} /><Button secondary onPress={() => setPromoMessage('Promo codes are not available at the moment.')}>Apply</Button></View>
         <Notice text={promoMessage} />
         <Card tone="soft"><Line label="Total to pay" value={money(order.totalAmount)} strong /><Copy kind="caption" color={palette.muted}>The total saved with your order. No extra delivery fee.</Copy></Card>
         <Copy kind="caption" center color={palette.muted}>EXPRESS CHECKOUT</Copy><Button secondary disabled onPress={() => {}}>Google Pay · Not connected</Button>
@@ -150,18 +148,16 @@ export function CheckoutScreen() {
         <Field label="Street address" placeholder="House number and street" value={delivery.address} onChangeText={address => setDelivery({ ...delivery, address })} error={errors.address} autoCapitalize="sentences" />
         <Field label="Apartment, suite, etc. (optional)" placeholder="Apartment or building" value={delivery.apartment} onChangeText={apartment => setDelivery({ ...delivery, apartment })} />
         <View style={{ flexDirection: 'row', gap: 12 }}><Field label="City" value={delivery.city} onChangeText={city => setDelivery({ ...delivery, city })} error={errors.city} /><Field label="Postal code" placeholder="00100" value={delivery.postalCode} onChangeText={postalCode => setDelivery({ ...delivery, postalCode })} error={errors.postalCode} keyboardType="number-pad" maxLength={5} /></View>
-        <Card tone="sage"><Info name="truck" title="Delivery details preview" detail="This demo does not update your order’s delivery address. Confirm delivery arrangements with your care team." /></Card>
+        <Card tone="sage"><Info name="truck" title="Delivery details preview" detail="These details do not change your saved order. Confirm delivery arrangements with your care team." /></Card>
       </> : <Card tone="sage"><IconTile name="heart" size={64} tone="screen" /><Copy kind="heading">{order?.elderlyName}</Copy><Copy>{order?.doctor?.doctorOrHospital || (order?.transport ? order.transport.pickupLocation + ' → ' + order.transport.destination : 'Your requested care service')}</Copy><Copy kind="caption" color={palette.muted}>No delivery address is needed for this service.</Copy></Card> : null}
       {step === 4 ? <>
         <Card tone="sage"><Pill tone="screen">{isPlan ? plan?.name.toUpperCase() + ' · ' + plan?.billingPeriod.toUpperCase() : order?.orderNumber}</Pill><Line label="Total today" value={money(amount || 0)} strong /></Card>
         {isPlan ? <Field label="Account email" value={user?.email} editable={false} /> : null}
         {Number(amount) > 0 ? <Card>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}><Icon name="card" /><Copy kind="heading">Credit / debit card</Copy></View>
-          <Notice text="Demo card only. Use the sample below; do not enter real card details." />
-          <TextLink onPress={() => { setCard({ number: '4242 4242 4242 4242', expiry: '12/30', cvv: '123', name: 'Demo User' }); setErrors({}); }}>Use demo card</TextLink>
-          <Field label="Card number" value={card.number} placeholder="4242 4242 4242 4242" onChangeText={number => setCard({ ...card, number })} error={errors.number} keyboardType="number-pad" maxLength={19} autoComplete="off" importantForAutofill="no" />
-          <View style={{ flexDirection: 'row', gap: 12 }}><Field label="Expiry date" placeholder="12/30" value={card.expiry} onChangeText={expiry => setCard({ ...card, expiry })} error={errors.expiry} maxLength={5} /><Field label="Security code" placeholder="123" value={card.cvv} onChangeText={cvv => setCard({ ...card, cvv })} error={errors.cvv} keyboardType="number-pad" secureTextEntry maxLength={3} autoComplete="off" importantForAutofill="no" /></View>
-          <Field label="Name on card" placeholder="Demo User" value={card.name} onChangeText={name => setCard({ ...card, name })} error={errors.name} autoCapitalize="words" autoComplete="off" />
+          <Field label="Card number" value={card.number} placeholder="0000 0000 0000 0000" onChangeText={number => setCard(current => ({ ...current, number: formatCardNumber(number) }))} error={errors.number} keyboardType="number-pad" maxLength={19} autoComplete="off" importantForAutofill="no" />
+          <View style={{ flexDirection: 'row', gap: 12 }}><Field label="Expiry date" placeholder="MM/YY" value={card.expiry} onChangeText={expiry => setCard(current => ({ ...current, expiry: formatExpiry(expiry, current.expiry) }))} error={errors.expiry} keyboardType="number-pad" maxLength={5} autoComplete="off" /><Field label="Security code" placeholder="CVV" value={card.cvv} onChangeText={cvv => setCard(current => ({ ...current, cvv: cvv.replace(/\D/g, '').slice(0, 3) }))} error={errors.cvv} keyboardType="number-pad" secureTextEntry maxLength={3} autoComplete="off" importantForAutofill="no" /></View>
+          <Field label="Name on card" placeholder="Full name" value={card.name} onChangeText={name => setCard(current => ({ ...current, name }))} error={errors.name} autoCapitalize="words" autoComplete="off" />
           <Check label={isPlan ? 'Use my saved billing address' : 'Use this as my billing address'} checked={sameBilling} onChange={() => setSameBilling(!sameBilling)} />
           {!sameBilling ? <><Field label="Billing street address" value={billing.address} onChangeText={address => setBilling({ ...billing, address })} error={errors.billing_address} /><Field label="Billing city" value={billing.city} onChangeText={city => setBilling({ ...billing, city })} error={errors.billing_city} /><Field label="Billing postal code" value={billing.postalCode} onChangeText={postalCode => setBilling({ ...billing, postalCode })} error={errors.billing_postalCode} keyboardType="number-pad" maxLength={5} /><Copy kind="caption" color={palette.muted}>Billing address preview only; it is not saved.</Copy></> : null}
         </Card> : <Info name="heart" title="Ready for more care" detail="This plan is free. No card details are needed." />}
