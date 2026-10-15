@@ -29,12 +29,18 @@ Start the existing backend and customer app using the repository setup instructi
 
 The web app defaults to `http://127.0.0.1:4000` for both HTTP and socket connections. `VITE_API_URL` can override that address. The mobile and admin clients must point to the same backend to share records.
 
+If an older admin tab was left open during a server/code change, refresh the page to load the current version. A rejected or expired login now clears that session and returns to sign-in with an explanation. A late rejected request cannot clear a newer login. Temporary server failures preserve the session and show a retry message.
+
+The **Subscriptions** page loads plans and customers together, shows loading/errors and a Refresh action, and distinguishes an empty subscriber list from a failed request. Existing records remain visible with a notice if a refresh fails. Each subscription includes a link to the customer's detail page.
+
 ## Verification — 16 October 2026
 
-- `Web`: `npm test` passes seven tests covering search/status combinations, totals and paid-date boundaries, export field selection, CSV escaping, receipt contents, and refusal to issue receipts for pending/failed payments.
+- `Web`: `npm test` passes ten tests covering search/status combinations, totals and paid-date boundaries, export field selection, CSV escaping, receipt contents, refusal to issue receipts for pending/failed payments, and current-versus-stale session invalidation.
 - `Web`: `npm run build` passes.
 - Eight browser checks pass against the isolated local PGlite preview: an existing mobile payment appears in the admin ledger; new order and subscription payments appear without a manual refresh; active filters are preserved; details and related-order links work; paid receipts and filtered CSV files download; pending/failed records have no paid receipt; loading errors block exports and recover on retry; and details remain usable at 390px.
 - Browser screenshots were inspected at desktop and narrow widths. No browser runtime errors were observed. The mobile checks used the browser preview, not an Android device.
 - Independent read-only review found no actionable defects in the scoped admin change and reran the seven unit tests successfully.
+- Session/subscription recovery: reproduced the blank subscriber table with an expired saved login before fixing it. Seven additional browser checks pass for payment details, subscribed customers and their detail links, expired saved sessions, runtime 401 responses, subscription/plan service failures, refresh recovery and a genuinely empty subscriber list.
+- Independent review of the session/subscription recovery found no actionable defects and reran all ten unit tests successfully.
 
 Implementation: `Web/src/pages/Payments.jsx` owns the page and detail dialog; `Web/src/payments.js` owns filtering, totals and export formatting. Other office screens remain in `Web/src/pages/Office.jsx`.
