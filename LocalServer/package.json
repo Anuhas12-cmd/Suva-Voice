@@ -1,0 +1,15 @@
+{
+  "name": "suva-voice-local-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local demo telephony, DTMF, and Asterisk integration for Suva Voice",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/
+.env
+dist/
+build/
+.expo/
+web-build/
+*.log
+npm-debug.log*
+.DS_Store
+coverage/

@@ -1,0 +1,28 @@
+{
+  "name": "suva-voice-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Suva Voice REST API, scheduler, notifications, and call business logic",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "setup": "node scripts/setup.js",
+    "seed": "node scripts/seed.js",
+    "unit": "node scripts/unit.js",
+    "test": "node scripts/unit.js && node scripts/acceptance.js"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1",
+    "socket.io": "^4.8.1",
+    "ws": "^8.18.3",
+    "socket.io-client": "^4.8.1",
+    "zod": "^3.24.2"
+  }
+}

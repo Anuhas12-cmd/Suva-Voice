@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Suva Voice call</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px 36px;
+      background: #e7eef2;
+      color: #111;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+    [hidden] { display: none !important; }
+    .phone {
+      width: min(372px, 100%);
+      padding: 16px 22px 22px;
+      border-radius: 46px;
+      background: linear-gradient(180deg, #2c2c2c 0%, #161616 12%, #101010 100%);
+      box-shadow: 0 0 0 2px #3a3a3a, inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 28px 60px rgba(16, 24, 32, 0.28);
+    }
+    .ear {
+      width: 58px;
+      height: 7px;
+      margin: 2px auto 12px;
+      border-radius: 8px;
+      background: #2a2a2a;
+      box-shadow: inset 0 1px 2px #000;
+    }
+    .bezel {
+      padding: 8px;
+      border-radius: 8px;
+      background: #0c0c0c;
+    }
+    .lcd {
+      min-height: 286px;
+      padding: 10px 14px 12px;
+      border-radius: 2px;
+      background: #f4f4f4;
+      color: #161616;
+      display: flex;
+      flex-direction: column;
+    }
+    .bar { display: flex; justify-content: space-between; align-items: center; height: 16px; }
+    .signal, .battery { display: block; }
+    .screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 2px;
+    }
+    .kicker { margin: 0; font-size: 0.92rem; letter-spacing: 0.02em; }
+    .clock {
+      margin: 2px 0 0;
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    h1 { margin: 6px 0 0; font-size: 1.35rem; font-weight: 700; line-height: 1.15; }
+    .number { margin: 2px 0 0; font-size: 0.95rem; }
+    .hint { margin: 10px 0 0; font-size: 0.84rem; }
+    .menu { margin: 8px 0 0; width: 100%; text-align: left; font-size: 0.98rem; }
+    .menu p { margin: 3px 0; }
+    .menu b { display: inline-block; width: 1.2em; }
+    .error { margin: 8px 0 0; min-height: 1.1em; color: #9d1c1c; font-size: 0.82rem; }
+    .done p { margin: 4px 0; }
+    #done-title { font-size: 1.25rem; font-weight: 700; }
+    .lcd.speaking .kicker { animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0.35; } }
+    .labels {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 6px 0;
+      color: #d5d5d5;
+      font-size: 0.78rem;
+    }
+    .cluster {
+      display: grid;
+      grid-template-columns: 28px 58px 108px 58px 28px;
+      column-gap: 10px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    button { font: inherit; color: inherit; }
+    .soft, .talk, .key, .dir {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    .soft {
+      height: 8px;
+      border-radius: 6px;
+      background: #2a2a2a;
+      box-shadow: inset 0 1px 1px #000, 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    .talk {
+      width: 54px;
+      height: 36px;
+      margin: 0 auto;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 0 #000;
+    }
+    .talk.green { background: #1f8f45; }
+    .talk.red { background: #d8192b; }
+    .talk svg { width: 22px; height: 22px; fill: white; }
+    .talk:disabled { opacity: 0.45; cursor: default; }
+    .dpad {
+      width: 104px;
+      height: 104px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .rock {
+      position: absolute;
+      inset: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 40%, #3a3a3a, #1a1a1a 70%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 0 #000;
+    }
+    .dir {
+      position: absolute;
+      color: #d0d0d0;
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+    .dir.up { top: 0; left: 40px; }
+    .dir.down { bottom: 0; left: 40px; }
+    .dir.left { left: 2px; top: 44px; }
+    .dir.right { right: 2px; top: 44px; }
+    .dir.center {
+      width: 34px;
+      height: 30px;
+      top: 37px;
+      left: 35px;
+      border-radius: 6px;
+      background: #1a1a1a;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 0 #000;
+    }
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px 12px;
+      margin-top: 12px;
+    }
+    .key {
+      min-height: 52px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #2b2b2b, #141414);
+      color: white;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 2px 0 #050505;
+    }
+    .key b { display: block; font-size: 1.2rem; font-weight: 650; }
+    .key span { display: block; margin-top: 1px; color: #bdbdbd; font-size: 0.58rem; letter-spacing: 0.12em; }
+    .key:active { transform: translateY(1px); }
+    .phone.ready [data-digit="1"],
+    .phone.ready [data-digit="2"],
+    .phone.ready [data-digit="3"] {
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 2px 0 #050505;
+    }
+    .demo {
+      width: min(372px, 100%);
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .demo button {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 10px;
+      background: #d5e0e6;
+      color: #24343c;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="phone" id="phone">
+      <div class="ear"></div>
+      <div class="bezel">
+        <div class="lcd" id="lcd">
+          <div class="bar">
+            <svg class="signal" width="22" height="12" viewBox="0 0 22 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="5" y="5" width="3" height="7" rx="0.5"/><rect x="10" y="2" width="3" height="10" rx="0.5"/><rect x="15" y="0" width="3" height="12" rx="0.5"/></svg>
+            <svg class="battery" width="22" height="12" viewBox="0 0 22 12" aria-hidden="true"><rect x="0.5" y="0.5" width="18" height="11" rx="1.5" fill="none" stroke="#161616"/><rect x="2" y="2" width="12" height="8"/><rect x="19.5" y="3.5" width="2" height="5" rx="0.5"/></svg>
+          </div>
+          <div class="screen">
+            <p class="kicker" id="status">Incoming call</p>
+            <p class="clock" id="timer" hidden>00:00</p>
+            <h1 id="name">Suva Voice</h1>
+            <p class="number" id="number"></p>
+            <p class="hint" id="hint">Press the green button to answer.</p>
+            <div class="menu" id="menu" hidden>
+              <p><b>1</b> Okay</p>
+              <p><b>2</b> Assistance</p>
+              <p><b>3</b> Emergency</p>
+            </div>
+            <div class="done" id="done" hidden>
+              <p id="done-title">Call ended</p>
+              <p id="done-copy"></p>
+            </div>
+            <p class="error" id="error"></p>
+          </div>
+        </div>
+      </div>
+      <div class="labels"><span id="soft-left">Select</span><span id="soft-right">Back</span></div>
+      <div class="cluster">
+        <button class="soft" id="select" type="button" aria-label="Select"></button>
+        <button class="talk green" id="answer" type="button" aria-label="Answer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 7a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .57 3.6 1 1 0 0 1-.25 1L6.6 10.8z"/></svg>
+        </button>
+        <div class="dpad" aria-hidden="true">
+          <span class="dir up">⌃</span>
+          <span class="dir left">‹</span>
+          <div class="rock"></div>
+          <span class="dir center"></span>
+          <span class="dir right">›</span>
+          <span class="dir down">⌄</span>
+        </div>
+        <button class="talk red" id="end" type="button" aria-label="End">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15.5v3.2a1 1 0 0 1-1.1 1 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.3 2.1 1 1 0 0 1 3.3 1h3.2a1 1 0 0 1 1 .86c.1.8.3 1.6.5 2.3a1 1 0 0 1-.23 1L6.1 6.9a16 16 0 0 0 6 6l1.7-1.7a1 1 0 0 1 1-.23c.8.2 1.5.4 2.3.5a1 1 0 0 1 .86 1z" transform="rotate(135 12 12)"/></svg>
+        </button>
+        <button class="soft" id="back" type="button" aria-label="Back"></button>
+      </div>
+      <div class="keys">
+        <button class="key" type="button" data-digit="1"><b>1</b><span></span></button>
+        <button class="key" type="button" data-digit="2"><b>2</b><span>ABC</span></button>
+        <button class="key" type="button" data-digit="3"><b>3</b><span>DEF</span></button>
+        <button class="key" type="button" data-digit="4"><b>4</b><span>GHI</span></button>
+        <button class="key" type="button" data-digit="5"><b>5</b><span>JKL</span></button>
+        <button class="key" type="button" data-digit="6"><b>6</b><span>MNO</span></button>
+        <button class="key" type="button" data-digit="7"><b>7</b><span>PQRS</span></button>
+        <button class="key" type="button" data-digit="8"><b>8</b><span>TUV</span></button>
+        <button class="key" type="button" data-digit="9"><b>9</b><span>WXYZ</span></button>
+        <button class="key" type="button" data-digit="*"><b>*</b><span>+</span></button>
+        <button class="key" type="button" data-digit="0"><b>0</b><span>␣</span></button>
+        <button class="key" type="button" data-digit="#"><b>#</b><span>↵</span></button>
+      </div>
+    </div>
+    <div class="demo">
+      <button type="button" data-outcome="no_answer">No answer</button>
+      <button type="button" data-outcome="failed">Failed call</button>
+      <button type="button" data-outcome="no_response">No response</button>
+    </div>
+  </div>
+  <audio id="voice" preload="auto"></audio>
+  <script>
+    const params = new URLSearchParams(location.hash.slice(1));
+    const token = params.get('token') || '';
+    history.replaceState(null, '', location.pathname + location.search);
+    const callId = location.pathname.split('/').filter(Boolean).pop();
+    const phone = document.querySelector('#phone');
+    const lcd = document.querySelector('#lcd');
+    const nameEl = document.querySelector('#name');
+    const numberEl = document.querySelector('#number');
+    const statusEl = document.querySelector('#status');
+    const hintEl = document.querySelector('#hint');
+    const menuEl = document.querySelector('#menu');
+    const errorEl = document.querySelector('#error');
+    const timerEl = document.querySelector('#timer');
+    const doneEl = document.querySelector('#done');
+    const voice = document.querySelector('#voice');
+    const answerBtn = document.querySelector('#answer');
+    let startedAt = 0;
+    let timerId = 0;
+    let busy = false;
+    let phase = 'ringing';
+    let generation = 0;
+    let opening = ['welcome', 'wellness_options'];
+    let holdTimer = 0;
+    let holdSent = false;
+    let repeatTimer = 0;
+    let repeatRun = 0;
+    let repeatCount = 0;
+    const REPEAT_WAIT_MS = 20000;
+    const REPEAT_LIMIT = 3;
+
+    function showError(message) {
+      errorEl.textContent = message || '';
+    }
+
+    function labels(left, right) {
+      document.querySelector('#soft-left').textContent = left;
+      document.querySelector('#soft-right').textContent = right;
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        method: options.method || 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: options.body ? JSON.stringify(options.body) : undefined
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(json.error?.message || 'The call could not be updated');
+      return json.data;
+    }
+
+    function tick() {
+      const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+      const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
+      timerEl.textContent = `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
+    }
+
+    function startClock() {
+      timerEl.hidden = false;
+      startedAt = Date.now();
+      tick();
+      timerId = setInterval(tick, 1000);
+    }
+
+    function stopAudio() {
+      generation += 1;
+      voice.pause();
+      voice.removeAttribute('src');
+      voice.load();
+    }
+
+    function clearRepeat() {
+      clearTimeout(repeatTimer);
+      repeatTimer = 0;
+      repeatRun += 1;
+    }
+
+    function scheduleRepeat() {
+      clearTimeout(repeatTimer);
+      const run = repeatRun;
+      repeatTimer = setTimeout(() => {
+        repeatTimer = 0;
+        playRepeat(run);
+      }, REPEAT_WAIT_MS);
+    }
+
+    function finish(title, copy) {
+      phase = 'ended';
+      clearRepeat();
+      clearInterval(timerId);
+      clearTimeout(holdTimer);
+      stopAudio();
+      phone.classList.remove('ready');
+      lcd.classList.remove('speaking');
+      hintEl.hidden = true;
+      menuEl.hidden = true;
+      nameEl.hidden = true;
+      numberEl.hidden = true;
+      doneEl.hidden = false;
+      document.querySelector('#done-title').textContent = title;
+      document.querySelector('#done-copy').textContent = copy;
+      statusEl.textContent = 'Call ended';
+      labels('', '');
+      answerBtn.disabled = true;
+    }
+
+    function resultCopy(call) {
+      const name = call.calleeName || nameEl.textContent;
+      if (call.resultCode === 'okay') return `${name} is okay. Today's check-in is complete.`;
+      if (call.resultCode === 'assistance') return `${name} asked for assistance.`;
+      if (call.resultCode === 'emergency') return `Emergency recorded for ${name}.`;
+      if (call.resultCode === 'no_response' || call.status === 'missed') return 'No key was pressed. This is not an emergency.';
+      if (call.status === 'no_answer') return `${name} did not answer. This is not an emergency.`;
+      if (call.status === 'failed') return 'The call could not be connected.';
+      return 'The check-in has been recorded.';
+    }
+
+    function confirmationFor(result, digit) {
+      if (result.call.resultCode === 'okay') return 'okay_received';
+      if (result.call.resultCode === 'assistance') return 'assistance_received';
+      if (digit === '9') return 'emergency_hold_sent';
+      return 'emergency_received';
+    }
+
+    async function playPrompt(id, mine) {
+      const response = await fetch(`/api/calls/${callId}/prompts/${encodeURIComponent(id)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (mine !== generation) return false;
+      if (!response.ok) {
+        const json = await response.json().catch(() => ({}));
+        throw new Error(json.error?.message || 'The prompt could not be played');
+      }
+      const blob = await response.blob();
+      if (mine !== generation) return false;
+      voice.src = URL.createObjectURL(blob);
+      await new Promise((resolve, reject) => {
+        voice.onended = resolve;
+        voice.onerror = () => reject(new Error('The prompt could not be played'));
+        voice.play().then(() => {
+          if (voice.ended) resolve();
+        }).catch(reject);
+      });
+      return mine === generation;
+    }
+
+    async function playSequence(ids) {
+      const mine = generation;
+      for (const id of ids) {
+        if (mine !== generation) return false;
+        const played = await playPrompt(id, mine);
+        if (!played) return false;
+      }
+      return mine === generation;
+    }
+
+    async function sendDigit(digit, holdMs) {
+      if (busy || phase !== 'keys') return;
+      clearTimeout(holdTimer);
+      clearRepeat();
+      stopAudio();
+      busy = true;
+      showError('');
+      try {
+        const result = await api(`/api/calls/${callId}/dtmf`, {
+          method: 'POST',
+          body: holdMs ? { digit, holdMs } : { digit }
+        });
+        if (result.invalid) {
+          busy = false;
+          repeatCount = 0;
+          statusEl.textContent = 'Press 1, 2, or 3';
+          try {
+            await playSequence(['invalid_response', 'repeat_options']);
+          } catch (error) {
+            showError(error.message);
+          }
+          if (phase === 'keys') scheduleRepeat();
+          return;
+        }
+        phase = 'confirming';
+        try {
+          await playSequence([confirmationFor(result, digit), 'goodbye']);
+        } catch (error) {
+          showError(error.message);
+        }
+        finish('Response recorded', resultCopy(result.call));
+      } catch (error) {
+        showError(error.message);
+        busy = false;
+      }
+    }
+
+    async function sendOutcome(outcome) {
+      if (busy || phase === 'ended' || phase === 'confirming') return;
+      const answered = phase !== 'ringing';
+      busy = true;
+      clearRepeat();
+      stopAudio();
+      showError('');
+      try {
+        const result = await api(`/api/calls/${callId}/simulate`, { method: 'POST', body: { outcome } });
+        if (outcome === 'no_response' && answered) {
+          phase = 'confirming';
+          try { await playSequence(['no_response_end']); } catch (error) { showError(error.message); }
+        }
+        finish('Call ended', resultCopy(result.call));
+      } catch (error) {
+        showError(error.message);
+        busy = false;
+      }
+    }
+
+    function endCall() {
+      if (phase === 'confirming') {
+        stopAudio();
+        return;
+      }
+      if (phase === 'ringing') sendOutcome('no_answer');
+      else if (phase === 'speaking' || phase === 'keys') sendOutcome('no_response');
+    }
+
+    async function playGreeting() {
+      statusEl.textContent = 'Suva Voice is about to speak';
+      hintEl.hidden = true;
+      lcd.classList.add('speaking');
+      const played = await playSequence(opening);
+      if (phase === 'ended') return;
+      lcd.classList.remove('speaking');
+      if (!played) return;
+      phase = 'keys';
+      statusEl.textContent = 'Press a key';
+      menuEl.hidden = false;
+      phone.classList.add('ready');
+      labels('', 'End');
+      repeatCount = 0;
+      scheduleRepeat();
+    }
+
+    async function playRepeat(run) {
+      if (run !== repeatRun || phase !== 'keys' || busy || holdTimer) return;
+      repeatCount += 1;
+      const finalTurn = repeatCount >= REPEAT_LIMIT;
+      statusEl.textContent = finalTurn ? 'Final request' : 'Repeating';
+      lcd.classList.add('speaking');
+      try {
+        await playSequence(['repeat_options']);
+      } catch (error) {
+        showError(error.message);
+      }
+      lcd.classList.remove('speaking');
+      if (run !== repeatRun || phase !== 'keys' || busy || holdTimer) return;
+      if (finalTurn) {
+        await declareEmergency(run);
+        return;
+      }
+      statusEl.textContent = 'Press a key';
+      scheduleRepeat();
+    }
+
+    async function declareEmergency(run) {
+      if (run !== repeatRun || phase !== 'keys' || busy) return;
+      busy = true;
+      phase = 'confirming';
+      clearTimeout(repeatTimer);
+      repeatTimer = 0;
+      try {
+        const result = await api(`/api/calls/${callId}/unanswered-emergency`, { method: 'POST' });
+        if (run !== repeatRun || phase === 'ended') return;
+        try {
+          await playSequence(['emergency_received', 'goodbye']);
+        } catch (error) {
+          showError(error.message);
+        }
+        const name = result.call?.calleeName || nameEl.textContent;
+        finish('Emergency recorded', `No key was pressed. An emergency alert has been recorded for ${name}.`);
+      } catch (error) {
+        if (phase === 'ended') return;
+        showError(error.message);
+        busy = false;
+        phase = 'keys';
+        statusEl.textContent = 'Press a key';
+      }
+    }
+
+    async function answer() {
+      if (phase !== 'ringing') return;
+      answerBtn.disabled = true;
+      document.querySelector('#select').disabled = true;
+      showError('');
+      phase = 'speaking';
+      labels('', 'End');
+      try {
+        startClock();
+        await playGreeting();
+      } catch (error) {
+        if (phase === 'ended') return;
+        phase = 'ringing';
+        clearRepeat();
+        stopAudio();
+        lcd.classList.remove('speaking');
+        timerEl.hidden = true;
+        clearInterval(timerId);
+        hintEl.hidden = false;
+        showError(error.message);
+        answerBtn.disabled = false;
+        document.querySelector('#select').disabled = false;
+        labels('Select', 'Back');
+      }
+    }
+
+    answerBtn.addEventListener('click', answer);
+    document.querySelector('#select').addEventListener('click', answer);
+    document.querySelector('#end').addEventListener('click', endCall);
+    document.querySelector('#back').addEventListener('click', endCall);
+    function beginHold() {
+      if (phase !== 'keys' || busy || holdTimer) return;
+      clearRepeat();
+      stopAudio();
+      holdSent = false;
+      holdTimer = setTimeout(() => {
+        holdTimer = 0;
+        holdSent = true;
+        sendDigit('9', 2000);
+      }, 2000);
+    }
+
+    function endHold() {
+      if (!holdTimer) return;
+      clearTimeout(holdTimer);
+      holdTimer = 0;
+      if (!holdSent) sendDigit('9');
+    }
+
+    document.querySelectorAll('[data-digit]').forEach((button) => {
+      if (button.dataset.digit === '9') {
+        button.addEventListener('pointerdown', (event) => {
+          event.preventDefault();
+          beginHold();
+        });
+        button.addEventListener('pointerup', endHold);
+        button.addEventListener('pointerleave', endHold);
+        return;
+      }
+      button.addEventListener('click', () => sendDigit(button.dataset.digit));
+    });
+    document.querySelectorAll('[data-outcome]').forEach((button) => {
+      button.addEventListener('click', () => sendOutcome(button.dataset.outcome));
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.repeat || phase !== 'keys') return;
+      if (event.key === '9') beginHold();
+      else if (/^[0-8*#]$/.test(event.key)) sendDigit(event.key);
+    });
+    document.addEventListener('keyup', (event) => {
+      if (event.key === '9') endHold();
+    });
+    window.addEventListener('pagehide', () => {
+      clearRepeat();
+      stopAudio();
+    });
+
+    api(`/api/calls/${callId}`).then((call) => {
+      nameEl.textContent = call.calleeName || 'Loved one';
+      numberEl.textContent = call.phone || '';
+      if (Number(call.attemptNumber) > 1) opening = ['calling_again', 'welcome', 'wellness_options'];
+      if (['completed', 'missed', 'failed', 'no_answer'].includes(call.status)) {
+        finish('Call ended', resultCopy(call));
+      }
+    }).catch((error) => showError(error.message));
+  </script>
+</body>
+</html>

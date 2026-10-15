@@ -1,0 +1,200 @@
+{
+  "welcome": {
+    "purpose": "Spoken when a wellness call is answered",
+    "active": true,
+    "text": {
+      "en": "Hello. This is an automated call from Suva Voice to check on your wellbeing.",
+      "si": "ආයුබෝවන්. මෙය සුව වොයිස් වෙතින් ඔබගේ සෞඛ්‍ය තත්ත්වය විමසීමට කරන ස්වයංක්‍රීය ඇමතුමකි.",
+      "ta": "வணக்கம். இது சுவா வாய்ஸிலிருந்து உங்கள் நலநிலையை விசாரிக்க செய்யப்படும் தானியங்கி அழைப்பாகும்."
+    }
+  },
+  "wellness_options": {
+    "purpose": "Wellness keypad choices",
+    "active": true,
+    "text": {
+      "en": "If you are okay, press 1. If you need assistance, press 2. If this is an emergency, press 3.",
+      "si": "ඔබ හොඳින් නම් අංක එක ඔබන්න. ඔබට සහාය අවශ්‍ය නම් අංක දෙක ඔබන්න. හදිසි අවස්ථාවක් නම් අංක තුන ඔබන්න.",
+      "ta": "நீங்கள் நலமாக இருந்தால் எண் ஒன்றை அழுத்தவும். உங்களுக்கு உதவி தேவைப்பட்டால் எண் இரண்டை அழுத்தவும். இது அவசரநிலை என்றால் எண் மூன்றை அழுத்தவும்."
+    }
+  },
+  "repeat_options": {
+    "purpose": "Repeats the wellness keypad choices",
+    "active": true,
+    "text": {
+      "en": "I will repeat. If you are okay, press 1. If you need assistance, press 2. If this is an emergency, press 3.",
+      "si": "නැවතත් කියන්නම්. ඔබ හොඳින් නම් අංක එක ඔබන්න. සහාය අවශ්‍ය නම් අංක දෙක ඔබන්න. හදිසි අවස්ථාවක් නම් අංක තුන ඔබන්න.",
+      "ta": "மீண்டும் கூறுகிறேன். நீங்கள் நலமாக இருந்தால் எண் ஒன்றை அழுத்தவும். உதவி தேவைப்பட்டால் எண் இரண்டை அழுத்தவும். இது அவசரநிலை என்றால் எண் மூன்றை அழுத்தவும்."
+    }
+  },
+  "waiting_for_response": {
+    "purpose": "Asks the person to answer after the options",
+    "active": true,
+    "text": {
+      "en": "Please provide your response.",
+      "si": "කරුණාකර ඔබගේ ප්‍රතිචාරය ලබා දෙන්න.",
+      "ta": "தயவுசெய்து உங்கள் பதிலை வழங்கவும்."
+    }
+  },
+  "okay_received": {
+    "purpose": "Confirmation after wellness key 1. No alert is created.",
+    "active": true,
+    "text": {
+      "en": "Thank you. We have recorded that you are okay. Have a good day.",
+      "si": "ස්තුතියි. ඔබ හොඳින් සිටින බව සටහන් කර ගත්තා. සුභ දවසක් වේවා.",
+      "ta": "நன்றி. நீங்கள் நலமாக இருப்பதாக பதிவு செய்யப்பட்டுள்ளது. இனிய நாளாக அமையட்டும்."
+    }
+  },
+  "assistance_received": {
+    "purpose": "Confirmation after wellness key 2",
+    "active": true,
+    "text": {
+      "en": "We have recorded that you need assistance. Your contact person and the Suva Voice team will be notified. Please remain calm.",
+      "si": "ඔබට සහාය අවශ්‍ය බව සටහන් කර ගත්තා. ඔබගේ සම්බන්ධතා පුද්ගලයා සහ සුව වොයිස් කණ්ඩායම දැනුවත් කරනු ලැබේ. කරුණාකර සන්සුන්ව සිටින්න.",
+      "ta": "உங்களுக்கு உதவி தேவைப்படுவதாக பதிவு செய்யப்பட்டுள்ளது. உங்கள் தொடர்பு நபரும் சுவா வாய்ஸ் குழுவும் அறிவிக்கப்படுவர். தயவுசெய்து அமைதியாக இருங்கள்."
+    }
+  },
+  "emergency_received": {
+    "purpose": "Confirmation after wellness key 3. Does not say an ambulance or the police were called.",
+    "active": true,
+    "text": {
+      "en": "You have reported an emergency. Your emergency contacts and the Suva Voice team will be notified. Please remain calm.",
+      "si": "ඔබ හදිසි අවස්ථාවක් වාර්තා කර ඇත. ඔබගේ හදිසි සම්බන්ධතා පුද්ගලයින් සහ සුව වොයිස් කණ්ඩායම දැනුවත් කරනු ලැබේ. කරුණාකර සන්සුන්ව සිටින්න.",
+      "ta": "நீங்கள் அவசரநிலையை அறிவித்துள்ளீர்கள். உங்கள் அவசர தொடர்பு நபர்களும் சுவா வாய்ஸ் குழுவும் அறிவிக்கப்படுவர். தயவுசெய்து அமைதியாக இருங்கள்."
+    }
+  },
+  "emergency_hold_sent": {
+    "purpose": "Played only after a two-second hold on 9 is accepted. Same truthful wording as the emergency confirmation.",
+    "active": true,
+    "text": {
+      "en": "You have reported an emergency. Your emergency contacts and the Suva Voice team will be notified. Please remain calm.",
+      "si": "ඔබ හදිසි අවස්ථාවක් වාර්තා කර ඇත. ඔබගේ හදිසි සම්බන්ධතා පුද්ගලයින් සහ සුව වොයිස් කණ්ඩායම දැනුවත් කරනු ලැබේ. කරුණාකර සන්සුන්ව සිටින්න.",
+      "ta": "நீங்கள் அவசரநிலையை அறிவித்துள்ளீர்கள். உங்கள் அவசர தொடர்பு நபர்களும் சுவா வாய்ஸ் குழுவும் அறிவிக்கப்படுவர். தயவுசெய்து அமைதியாக இருங்கள்."
+    }
+  },
+  "invalid_response": {
+    "purpose": "Spoken when the pressed key is not valid for a wellness call",
+    "active": true,
+    "text": {
+      "en": "The number you entered is not valid. Please press only 1, 2, or 3.",
+      "si": "ඔබ ඇතුළත් කළ අංකය වලංගු නොවේ. කරුණාකර අංක එක, දෙක, හෝ තුන පමණක් ඔබන්න.",
+      "ta": "நீங்கள் அழுத்திய எண் செல்லுபடியாகாது. தயவுசெய்து ஒன்று, இரண்டு அல்லது மூன்று ஆகிய எண்களில் ஒன்றை மட்டும் அழுத்தவும்."
+    }
+  },
+  "no_response_first": {
+    "purpose": "First reminder that no wellness key has been pressed",
+    "active": true,
+    "text": {
+      "en": "We have not received your response. Please press 1, 2, or 3 now.",
+      "si": "ඔබගේ ප්‍රතිචාරය ලැබී නැහැ. කරුණාකර දැන් අංක එක, දෙක, හෝ තුන ඔබන්න.",
+      "ta": "உங்கள் பதில் கிடைக்கவில்லை. தயவுசெய்து இப்போது ஒன்று, இரண்டு அல்லது மூன்று ஆகிய எண்களில் ஒன்றை அழுத்தவும்."
+    }
+  },
+  "no_response_second": {
+    "purpose": "Second reminder that no wellness key has been pressed",
+    "active": true,
+    "text": {
+      "en": "We still have not received a response. Press 1 if you are okay, 2 if you need assistance, or 3 for an emergency.",
+      "si": "තවමත් ප්‍රතිචාරයක් ලැබී නැහැ. ඔබ හොඳින් නම් එක, සහාය අවශ්‍ය නම් දෙක, හදිසි අවස්ථාවක් නම් තුන ඔබන්න.",
+      "ta": "இன்னும் உங்கள் பதில் கிடைக்கவில்லை. நீங்கள் நலமாக இருந்தால் ஒன்று, உதவி தேவைப்பட்டால் இரண்டு, அவசரநிலை என்றால் மூன்று அழுத்தவும்."
+    }
+  },
+  "no_response_end": {
+    "purpose": "Spoken when a wellness call ends with no key. This is not an emergency.",
+    "active": true,
+    "text": {
+      "en": "Because no response was received, this call will now end. Suva Voice will record it as a no-response call.",
+      "si": "ප්‍රතිචාරයක් ලැබී නොමැති බැවින් මෙම ඇමතුම අවසන් කරනු ලැබේ. සුව වොයිස් පද්ධතිය මෙය ප්‍රතිචාර නොලැබුණු ඇමතුමක් ලෙස සටහන් කරනු ඇත.",
+      "ta": "பதில் கிடைக்காததால் இந்த அழைப்பு முடிக்கப்படுகிறது. சுவா வாய்ஸ் அமைப்பு இதை பதில் கிடைக்காத அழைப்பாக பதிவு செய்யும்."
+    }
+  },
+  "calling_again": {
+    "purpose": "Spoken at the start of a retry call",
+    "active": true,
+    "text": {
+      "en": "Suva Voice is calling you again because the previous call was unsuccessful.",
+      "si": "පෙර ඇමතුම සාර්ථක නොවූ බැවින් සුව වොයිස් නැවත ඔබව සම්බන්ධ කරයි.",
+      "ta": "முந்தைய அழைப்பு வெற்றியடையாததால் சுவா வாய்ஸ் மீண்டும் உங்களை தொடர்புகொள்கிறது."
+    }
+  },
+  "goodbye": {
+    "purpose": "Closing line after a wellness confirmation",
+    "active": true,
+    "text": {
+      "en": "Thank you for using Suva Voice. Have a good day.",
+      "si": "සුව වොයිස් භාවිතා කිරීම ගැන ස්තුතියි. ඔබට සුභ දවසක් වේවා.",
+      "ta": "சுவா வாய்ஸைப் பயன்படுத்தியதற்கு நன்றி. இனிய நாளாக அமையட்டும்."
+    }
+  },
+  "medication_reminder": {
+    "purpose": "Medication reminder",
+    "active": true,
+    "text": {
+      "en": "Hello. This is a Suva Voice reminder. It is time to take your medication. Please take your scheduled medicine.",
+      "si": "ආයුබෝවන්. මෙය සුව වොයිස් මතක් කිරීමකි. ඔබගේ ඖෂධ ලබා ගැනීමට නියමිත වේලාව පැමිණ ඇත. කරුණාකර නියමිත ඖෂධ ලබා ගන්න.",
+      "ta": "வணக்கம். இது சுவா வாய்ஸ் நினைவூட்டல். உங்கள் மருந்தை எடுத்துக்கொள்ள வேண்டிய நேரம் வந்துவிட்டது. தயவுசெய்து திட்டமிட்ட மருந்தை எடுத்துக்கொள்ளவும்."
+    }
+  },
+  "meal_reminder": {
+    "purpose": "Meal reminder",
+    "active": true,
+    "text": {
+      "en": "This is a Suva Voice reminder. It is time to have your meal.",
+      "si": "මෙය සුව වොයිස් මතක් කිරීමකි. ඔබගේ ආහාර වේල ලබා ගැනීමට වේලාව පැමිණ ඇත.",
+      "ta": "இது சுவா வாய்ஸ் நினைவூட்டல். உங்கள் உணவை எடுத்துக்கொள்ள வேண்டிய நேரம் வந்துவிட்டது."
+    }
+  },
+  "water_reminder": {
+    "purpose": "Water reminder",
+    "active": true,
+    "text": {
+      "en": "This is a Suva Voice reminder. Please remember to drink enough water.",
+      "si": "මෙය සුව වොයිස් මතක් කිරීමකි. කරුණාකර ප්‍රමාණවත් ලෙස ජලය පානය කිරීමට මතක තබා ගන්න.",
+      "ta": "இது சுவா வாய்ஸ் நினைவூட்டல். தயவுசெய்து போதுமான அளவு தண்ணீர் குடிக்க நினைவில் கொள்ளுங்கள்."
+    }
+  },
+  "rest_reminder": {
+    "purpose": "Rest reminder",
+    "active": true,
+    "text": {
+      "en": "This is a Suva Voice reminder. It is time for your rest. Please take a short break.",
+      "si": "මෙය සුව වොයිස් මතක් කිරීමකි. ඔබගේ විවේක වේලාව පැමිණ ඇත. කරුණාකර ටික වේලාවක් විවේක ගන්න.",
+      "ta": "இது சுவா வாய்ஸ் நினைவூட்டல். உங்கள் ஓய்வு நேரம் வந்துவிட்டது. தயவுசெய்து சிறிது நேரம் ஓய்வெடுக்கவும்."
+    }
+  },
+  "doctor_reminder": {
+    "purpose": "Doctor appointment reminder",
+    "active": true,
+    "text": {
+      "en": "This is a Suva Voice reminder. You have a doctor appointment today. Please make the necessary preparations.",
+      "si": "මෙය සුව වොයිස් මතක් කිරීමකි. ඔබට අද වෛද්‍ය හමුවක් නියමිතව ඇත. කරුණාකර අවශ්‍ය සූදානම් කර ගන්න.",
+      "ta": "இது சுவா வாய்ஸ் நினைவூட்டல். இன்று உங்களுக்கு மருத்துவர் சந்திப்பு உள்ளது. தயவுசெய்து தேவையான தயாரிப்புகளைச் செய்யவும்."
+    }
+  },
+  "general_reminder": {
+    "purpose": "Reminder that has no more specific type",
+    "active": true,
+    "text": {
+      "en": "This is a Suva Voice reminder. You have a scheduled reminder. Please take note of it.",
+      "si": "මෙය සුව වොයිස් මතක් කිරීමකි. ඔබට නියමිත මතක් කිරීමක් ඇත. කරුණාකර ඒ පිළිබඳව අවධානය යොමු කරන්න.",
+      "ta": "இது சுவா வாய்ஸ் நினைவூட்டல். உங்களுக்கு திட்டமிடப்பட்ட நினைவூட்டல் உள்ளது. தயவுசெய்து அதில் கவனம் செலுத்தவும்."
+    }
+  },
+  "technical_error": {
+    "purpose": "Spoken in the call language when a prompt cannot be played",
+    "active": true,
+    "text": {
+      "en": "Sorry. A technical error occurred and your request could not be completed.",
+      "si": "කණගාටුයි. තාක්ෂණික දෝෂයක් ඇති වී ඇත. ඔබගේ ඉල්ලීම සම්පූර්ණ කිරීමට නොහැකි විය.",
+      "ta": "மன்னிக்கவும். தொழில்நுட்ப பிழை ஏற்பட்டுள்ளது. உங்கள் கோரிக்கையை நிறைவேற்ற முடியவில்லை."
+    }
+  },
+  "system_unavailable": {
+    "purpose": "Spoken when the service cannot take the call",
+    "active": true,
+    "text": {
+      "en": "Sorry. Suva Voice is temporarily unavailable at the moment. Please try again later.",
+      "si": "කණගාටුයි. මේ මොහොතේ සුව වොයිස් සේවාව තාවකාලිකව ලබා ගත නොහැක. කරුණාකර පසුව නැවත උත්සාහ කරන්න.",
+      "ta": "மன்னிக்கவும். தற்போது சுவா வாய்ஸ் சேவை தற்காலிகமாக கிடைக்கவில்லை. தயவுசெய்து பின்னர் மீண்டும் முயற்சிக்கவும்."
+    }
+  }
+}

@@ -1,0 +1,29 @@
+; Example trunk. Replace the carrier details when a SIP provider is available.
+; Do not commit real passwords.
+
+[suva-trunk]
+type=endpoint
+context=suva-outbound
+disallow=all
+allow=ulaw
+outbound_auth=suva-trunk-auth
+aors=suva-trunk-aor
+
+[suva-trunk-aor]
+type=aor
+contact=sip:sip.example.com
+
+[suva-trunk-auth]
+type=auth
+auth_type=userpass
+username=CHANGE_ME
+password=CHANGE_ME
+
+[suva-ami]
+; In manager.conf, allow the LocalServer AMI user from 127.0.0.1 only.
+; [suva]
+; secret = CHANGE_ME
+; deny = 0.0.0.0/0.0.0.0
+; permit = 127.0.0.1/255.255.255.255
+; read = call,originate
+; write = call,originate

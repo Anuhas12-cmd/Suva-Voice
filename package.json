@@ -1,0 +1,10 @@
+{
+  "name": "suva-voice",
+  "private": true,
+  "description": "Suva Voice — Care. Connect. Protect.",
+  "scripts": {
+    "setup": "node Backend/scripts/setup.js",
+    "start": "node scripts/start.js",
+    "test": "node Backend/scripts/unit.js && node Backend/scripts/acceptance.js"
+  }
+}

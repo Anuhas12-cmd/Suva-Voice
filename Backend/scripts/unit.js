@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import { displayPhone, normalizePhone } from '../src/util/phone.js';
+import { buildPrompt, nextRunAt } from '../src/util/time.js';
+
+assert.equal(normalizePhone('+94 77 123 4567'), '0771234567');
+assert.equal(normalizePhone('0771234567'), '0771234567');
+assert.equal(displayPhone('0771234567'), '077 123 4567');
+const upcoming = nextRunAt('08:30', [1, 2, 3, 4, 5, 6, 7]);
+assert.ok(upcoming.getTime() > Date.now());
+const prompt = buildPrompt();
+assert.match(prompt, /If you are okay, press 1/);
+assert.match(prompt, /If you need assistance, press 2/);
+assert.match(prompt, /If this is an emergency, press 3/);
+const sinhala = buildPrompt(new Date(), 'si');
+assert.match(sinhala, /අංක එක ඔබන්න/);
+assert.match(sinhala, /අංක දෙක ඔබන්න/);
+assert.match(sinhala, /අංක තුන ඔබන්න/);
+assert.equal(sinhala.includes('press 1'), false);
+const tamil = buildPrompt(new Date(), 'ta');
+assert.match(tamil, /எண் ஒன்றை அழுத்தவும்/);
+assert.match(tamil, /எண் இரண்டை அழுத்தவும்/);
+assert.match(tamil, /எண் மூன்றை அழுத்தவும்/);
+assert.equal(tamil.includes('press 1'), false);
+console.log('Unit checks passed');
