@@ -3,48 +3,6 @@ import { api, useAuth } from '../api';
 import { label, money, when } from '../format';
 import { Badge, ErrorText, Modal } from '../components/ui';
 
-export function Payments() {
-  const { liveTick } = useAuth();
-  const [data, setData] = useState([]);
-  const [status, setStatus] = useState('');
-  useEffect(() => { api(`/api/payments?status=${status}`).then((rows) => setData(Array.isArray(rows) ? rows : [])).catch(() => {}); }, [status, liveTick]);
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
-  const successful = data.filter((item) => item.status === 'successful');
-  const month = successful.filter((item) => new Date(item.paidAt || item.createdAt) >= monthStart);
-  const pending = data.filter((item) => item.status === 'pending');
-  return (
-    <>
-      <div className="page-head"><div><h1>Payments</h1><p>Demo ledger in Sri Lankan rupees. No card is charged.</p></div></div>
-      <section className="stats">
-        <article className="stat"><span>Successful total</span><strong>{money(successful.reduce((sum, item) => sum + Number(item.amount), 0))}</strong></article>
-        <article className="stat"><span>Records</span><strong>{data.length}</strong></article>
-        <article className="stat"><span>This month</span><strong>{money(month.reduce((sum, item) => sum + Number(item.amount), 0))}</strong></article>
-        <article className="stat"><span>Pending</span><strong>{money(pending.reduce((sum, item) => sum + Number(item.amount), 0))}</strong></article>
-      </section>
-      <section className="panel">
-        <label>Status
-          <select value={status} onChange={(event) => setStatus(event.target.value)}>
-            <option value="">All</option>
-            <option value="successful">Successful</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-          </select>
-        </label>
-        <table>
-          <thead><tr><th>Reference</th><th>Customer</th><th>Description</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
-          <tbody>
-            {data.map((item) => (
-              <tr key={item.id}><td>{item.transactionRef}</td><td>{item.customerName}</td><td>{item.serviceLabel}</td><td>{money(item.amount)}</td><td><Badge value={item.status} /></td><td>{when(item.createdAt)}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-    </>
-  );
-}
-
 const blankPlan = { name: '', code: '', priceLkr: 2000, description: '', services: 'Daily wellness call\nEmergency alerts', active: true };
 
 export function Subscriptions() {

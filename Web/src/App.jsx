@@ -6,7 +6,8 @@ import Dashboard from './pages/Dashboard';
 import { Contacts, CustomerDetail, Customers, Elderly, ElderlyDetail, SearchPage } from './pages/People';
 import { Alerts, Calls, Reminders, Schedules } from './pages/Voice';
 import { Deliveries, OrderDetail, Orders, Providers } from './pages/Care';
-import { Notifications, Payments, Reports, Settings, Subscriptions, Support } from './pages/Office';
+import { Notifications, Reports, Settings, Subscriptions, Support } from './pages/Office';
+import Payments from './pages/Payments';
 
 function Guard() {
   const { token, user } = useAuth();
