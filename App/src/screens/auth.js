@@ -139,7 +139,7 @@ export function Login({ go }) {
       <Field labelText="Password" secure value={form.password} onChangeText={(password) => setForm({ ...form, password })} />
       <Btn onPress={submit} disabled={busy}>{busy ? 'Signing in…' : 'Login'}</Btn>
       <Btn kind="ghost" onPress={() => go('forgot')}>Forgot Password</Btn>
-      <Btn kind="secondary" onPress={() => go('register')}>Don't have an account? Sign up</Btn>
+      <Btn kind="secondary" onPress={() => go('register')}>Don’t have an account? Sign up</Btn>
     </Screen>
   );
 }

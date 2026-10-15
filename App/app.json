@@ -12,7 +12,10 @@
     "android": {
       "package": "lk.suvavoice.customer",
       "usesCleartextTraffic": true,
-      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"],
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#FDF8F4",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -21,7 +24,13 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-image"
+    ],
+    "scheme": "suvavoice"
   }
 }

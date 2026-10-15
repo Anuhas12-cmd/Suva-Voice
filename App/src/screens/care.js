@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
+import { router } from 'expo-router';
 import { api } from '../api';
 import { errorsFrom, label, money, when } from '../format';
 import { Art, Back, Badge, Btn, Card, Chips, Empty, Field, Notice, Row, Screen, Text, Title } from '../ui';
@@ -179,7 +180,6 @@ const stages = ['order_confirmed', 'preparing', 'in_transit', 'delivered'];
 
 export function OrderDetail({ go, params, tick }) {
   const [order, setOrder] = useState(null);
-  const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   useEffect(() => { api(`/api/care-orders/${params.id}`).then(setOrder).catch((err) => setError(err.message)); }, [params.id, tick]);
   if (!order) return <Screen><Text>{error || 'Loading order…'}</Text></Screen>;
@@ -189,7 +189,6 @@ export function OrderDetail({ go, params, tick }) {
       <Back onPress={() => go('orders')} />
       <Title sub={order.elderlyName}>{order.orderNumber}</Title>
       <Badge value={order.status} />
-      <Notice text={notice} />
       <Notice text={error} bad />
       <Card>
         <Text style={{ fontWeight: '800' }}>Tracking</Text>
@@ -206,12 +205,7 @@ export function OrderDetail({ go, params, tick }) {
         {order.transport ? <Text>Ride: {order.transport.pickupLocation} → {order.transport.destination}</Text> : null}
         {order.status !== 'cancelled' && order.status !== 'completed' ? (
           <>
-            <Btn onPress={async () => {
-              try {
-                const payment = await api('/api/payments', { method: 'POST', body: { orderId: order.id } });
-                setNotice(`Payment ${payment.transactionRef} is ${payment.status}.`);
-              } catch (err) { setError(err.message); }
-            }}>Pay {money(order.totalAmount)}</Btn>
+            <Btn onPress={() => router.push({ pathname: '/payments/checkout', params: { kind: 'order', id: order.id } })}>Review payment · {money(order.totalAmount)}</Btn>
             <Btn kind="secondary" onPress={async () => {
               try {
                 await api(`/api/care-orders/${order.id}`, { method: 'PATCH', body: { status: 'cancelled' } });
@@ -221,63 +215,6 @@ export function OrderDetail({ go, params, tick }) {
           </>
         ) : null}
       </Card>
-    </Screen>
-  );
-}
-
-export function Payments({ go, tick }) {
-  const [rows, setRows] = useState([]);
-  useEffect(() => { api('/api/payments').then(setRows).catch(() => {}); }, [tick]);
-  const total = rows.filter((item) => item.status === 'successful').reduce((sum, item) => sum + Number(item.amount), 0);
-  return (
-    <Screen>
-      <Back onPress={() => go('more')} />
-      <Title sub="Demo records in Sri Lankan rupees. No card is charged.">Payments</Title>
-      <Card><Text>Total spending</Text><Text style={{ fontSize: 28, fontWeight: '800' }}>{money(total)}</Text></Card>
-      {rows.map((item) => (
-        <Card key={item.id}>
-          <Text style={{ fontWeight: '800' }}>{item.serviceLabel}</Text>
-          <Text>{money(item.amount)} · {item.transactionRef}</Text>
-          <Text>{when(item.createdAt)}</Text>
-          <Badge value={item.status} />
-        </Card>
-      ))}
-    </Screen>
-  );
-}
-
-export function Plans({ go, tick }) {
-  const [plans, setPlans] = useState([]);
-  const [current, setCurrent] = useState(null);
-  const [notice, setNotice] = useState('');
-  const [error, setError] = useState('');
-  useEffect(() => {
-    api('/api/subscriptions/plans').then(setPlans).catch((err) => setError(err.message));
-    api('/api/subscriptions/current').then(setCurrent).catch(() => setCurrent(null));
-  }, [tick]);
-  return (
-    <Screen>
-      <Back onPress={() => go('more')} />
-      <Title sub="Illustrative demo prices, not a commercial price list.">Subscriptions</Title>
-      <Notice text={notice} />
-      <Notice text={error} bad />
-      <Card><Text style={{ fontWeight: '800' }}>Current plan</Text><Text>{current?.name || 'None'}</Text>{current ? <Text>{money(current.priceLkr)} / {current.billingPeriod}</Text> : null}</Card>
-      {plans.map((plan) => (
-        <Card key={plan.id}>
-          <Text style={{ fontSize: 18, fontWeight: '800' }}>{plan.name}</Text>
-          <Text>{money(plan.priceLkr)} / {plan.billingPeriod}</Text>
-          <Text>{plan.description}</Text>
-          {(plan.services || []).map((item) => <Text key={item}>• {item}</Text>)}
-          <Btn kind={current?.planId === plan.id ? 'secondary' : 'primary'} onPress={async () => {
-            setError('');
-            try {
-              const result = await api('/api/subscriptions', { method: 'POST', body: { planId: plan.id } });
-              setCurrent({ ...result.plan, planId: plan.id, priceLkr: result.plan.priceLkr });
-              setNotice(`Moved to ${result.plan.name}. Demo payment ${result.payment.transactionRef} is ${result.payment.status}.`);
-            } catch (err) { setError(err.message); }
-          }}>{current?.planId === plan.id || current?.id === plan.id ? 'Current plan' : 'Upgrade plan'}</Btn>
-        </Card>
-      ))}
     </Screen>
   );
 }
