@@ -19,7 +19,9 @@ Totals are calculated from the loaded records and remain consistent when the lis
 
 The existing API returns the latest 200 payments. The page explicitly states that totals, search and exports cover those recent records. Server-side search and pagination would be needed for a larger historical ledger.
 
-Admins and staff use the existing web access controls and API permissions. Customer API calls remain restricted to that customer's records. This change does not add payment-state changes, refunds, new backend endpoints or database migrations.
+Admins and staff use the existing web access controls and API permissions. Customer API calls remain restricted to that customer's records. This change does not add payment-state changes, refunds or new backend endpoints. The free Essential Check-in plan has a one-time price migration described in `Database/README.md`.
+
+Free-plan activations appear as successful zero-amount records, with the method **No payment required**. They do not add collected revenue. Receipt exports identify them as subscription confirmations. Subscriptions displays the plan price as **Free**.
 
 The payment provider remains simulated. Clean customer-facing wording does not enable bank processing. Card details are not sent by the mobile app and are not present in the admin ledger.
 
@@ -35,7 +37,7 @@ The **Subscriptions** page loads plans and customers together, shows loading/err
 
 ## Verification — 16 October 2026
 
-- `Web`: `npm test` passes ten tests covering search/status combinations, totals and paid-date boundaries, export field selection, CSV escaping, receipt contents, refusal to issue receipts for pending/failed payments, and current-versus-stale session invalidation.
+- `Web`: `npm test` passes eleven tests covering search/status combinations, totals and paid-date boundaries, export field selection, CSV escaping, paid receipts and free confirmations, refusal to issue receipts for pending/failed payments, and current-versus-stale session invalidation.
 - `Web`: `npm run build` passes.
 - Eight browser checks pass against the isolated local PGlite preview: an existing mobile payment appears in the admin ledger; new order and subscription payments appear without a manual refresh; active filters are preserved; details and related-order links work; paid receipts and filtered CSV files download; pending/failed records have no paid receipt; loading errors block exports and recover on retry; and details remain usable at 390px.
 - Browser screenshots were inspected at desktop and narrow widths. No browser runtime errors were observed. The mobile checks used the browser preview, not an Android device.

@@ -6,6 +6,14 @@ const paid = { id: 'p1', transactionRef: 'SV123', customerName: 'Nimal Fernando'
 const pending = { ...paid, id: 'p2', transactionRef: 'SV456', customerName: 'Amali Silva', serviceLabel: 'Care essentials', status: 'pending', amount: '200.25', paidAt: null, subscriptionId: null, orderId: 'o1' };
 const failed = { ...pending, id: 'p3', transactionRef: 'SV789', status: 'failed' };
 const rows = [paid, pending, failed];
+test('free plan exports describe activation and contribute no collected amount', () => {
+  const free = { ...paid, amount: 0, provider: 'free' };
+  assert.match(paymentReceipt(free), /SUBSCRIPTION CONFIRMATION/);
+  assert.match(paymentReceipt(free), /No payment required/);
+  assert.doesNotMatch(paymentReceipt(free), /Total paid/);
+  assert.match(paymentCsv([free]), /No payment required/);
+  assert.equal(paymentSummary([paid, free]).successfulTotal, 1500.5);
+});
 
 test('search matches customer, reference and service without case or spacing sensitivity', () => {
   assert.deepEqual(filterPayments(rows, '  NIMAL sv123 '), [paid]);

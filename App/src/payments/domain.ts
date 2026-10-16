@@ -14,7 +14,8 @@ export const money = (value: number | string) => `LKR ${Number(value).toLocaleSt
 export const dateLabel = (value?: string) => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not available';
 export const statusLabel = (status: string) => ({ successful: 'Paid', pending: 'Pending', failed: 'Failed' })[status] || 'Checking';
 export const filterPayments = (payments: Payment[], filter: string) => filter === 'all' ? payments : payments.filter(p => p.status === filter);
-export const paymentMethodLabel = (provider?: string) => provider === 'demo' ? 'Online payment' : provider || 'Not recorded';
+export const paymentMethodLabel = (provider?: string) => provider === 'free' ? 'No payment required' : provider === 'demo' ? 'Online payment' : provider || 'Not recorded';
+export const isFreeActivation = (payment?: Payment | null) => Boolean(payment?.subscriptionId && payment.provider === 'free' && Number(payment.amount) === 0);
 export const planDescription = (description: string) => description.replace(/^Illustrative demo price\.\s*/i, '');
 
 export function validateContact(form: Contact): FieldErrors {
@@ -127,5 +128,6 @@ export function createPaymentController({ request, readAttempt, writeAttempt, cl
 
 export function receiptText(payment: Payment): string {
   if (payment.status !== 'successful') throw new Error('A receipt is available after payment is confirmed.');
-  return ['SUVA VOICE', 'PAYMENT RECEIPT', '', payment.serviceLabel || 'Care payment', `Reference: ${payment.transactionRef}`, `Date: ${dateLabel(payment.paidAt || payment.createdAt)}`, `Method: ${paymentMethodLabel(payment.provider)}`, `Total paid: ${money(payment.amount)}`, '', 'Thank you for choosing Suva Voice.'].join('\n');
+  const free = isFreeActivation(payment);
+  return ['SUVA VOICE', free ? 'SUBSCRIPTION CONFIRMATION' : 'PAYMENT RECEIPT', '', payment.serviceLabel || 'Care payment', `Reference: ${payment.transactionRef}`, `Date: ${dateLabel(payment.paidAt || payment.createdAt)}`, `Method: ${paymentMethodLabel(payment.provider)}`, `${free ? 'Plan fee' : 'Total paid'}: ${money(payment.amount)}`, '', 'Thank you for choosing Suva Voice.'].join('\n');
 }

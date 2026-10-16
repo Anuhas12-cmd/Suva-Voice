@@ -135,8 +135,10 @@ export async function changePlan(user, planId) {
     if (!customerId) throw httpError(403, 'Only a family account can change a subscription');
     const plan = await client.query('SELECT * FROM subscription_plans WHERE id = $1 AND active = true', [planId]);
     if (!plan.rows[0]) throw httpError(404, 'That plan is not available');
-    const gateway = getPaymentGateway();
-    const charge = await gateway.charge({ amount: plan.rows[0].price_lkr, simulate: 'successful' });
+    const free = Number(plan.rows[0].price_lkr) === 0;
+    const charge = free
+      ? { status: 'successful', transactionRef: `SVFREE${crypto.randomUUID()}`, provider: 'free' }
+      : await getPaymentGateway().charge({ amount: plan.rows[0].price_lkr, simulate: 'successful' });
     if (charge.status !== 'successful') {
       const failed = await insertPayment(client, {
         customerId,

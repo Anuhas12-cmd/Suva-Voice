@@ -4,6 +4,13 @@ import { createPaymentController, validateContact, validateDelivery, validateCar
 
 const order = { id: 'order-1', totalAmount: '1500.50', status: 'pending', payments: [] };
 const payment = { id: 'p1', orderId: 'order-1', status: 'successful', amount: '1500.50', serviceLabel: 'Care essentials', transactionRef: 'SV123', provider: 'demo', createdAt: '2026-10-16T09:00:00Z' };
+test('free plan records identify activation and no payment requirement', () => {
+  const text = receiptText({ ...payment, orderId: undefined, subscriptionId: 's-free', provider: 'free', amount: 0 });
+  assert.match(text, /SUBSCRIPTION CONFIRMATION/);
+  assert.match(text, /No payment required/);
+  assert.match(text, /LKR 0.00/);
+  assert.doesNotMatch(text, /PAYMENT RECEIPT|Total paid/);
+});
 function setup(handler) {
   let attempt = null;
   const calls = [];

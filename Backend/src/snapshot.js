@@ -1,6 +1,7 @@
 import fs from 'fs';
 
 const INSERT_ORDER = [
+  'schema_migrations',
   'users',
   'customers',
   'elderly_profiles',
@@ -68,7 +69,7 @@ export async function writeDataSql(query, filePath) {
     '-- The API applies this file when Database/data does not exist yet.',
     'BEGIN;',
     `TRUNCATE TABLE
-      alert_escalations, notifications, audit_logs, support_requests, payments,
+      schema_migrations, alert_escalations, notifications, audit_logs, support_requests, payments,
       delivery_events, care_order_items, doctor_appointments, transport_requests, care_orders,
       subscriptions, subscription_plans, service_providers, reminders, call_responses, alerts,
       call_records, call_schedules, emergency_contacts, elderly_profiles, customers, users, system_settings

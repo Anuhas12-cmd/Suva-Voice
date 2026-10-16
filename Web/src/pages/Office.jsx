@@ -64,7 +64,7 @@ export function Subscriptions() {
         {plans.map((plan) => (
           <article className="panel" key={plan.id}>
             <div className="row-between"><h2>{plan.name}</h2><Badge value={plan.active ? 'active' : 'disabled'} /></div>
-            <strong>{money(plan.priceLkr)} / {plan.billingPeriod}</strong>
+            <strong>{Number(plan.priceLkr) === 0 ? 'Free' : money(plan.priceLkr) + ' / ' + plan.billingPeriod}</strong>
             <p>{String(plan.description || '').replace(/^Illustrative demo price\.\s*/i, '')}</p>
             <ul>{(plan.services || []).map((item) => <li key={item}>{item}</li>)}</ul>
             <p className="tiny">{people.filter((item) => item.planId === plan.id && item.status === 'active').length} subscribed</p>

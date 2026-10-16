@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, useAuth } from '../api';
 import { money, when } from '../format';
 import { Badge, ErrorText } from '../components/ui';
-import { downloadPaymentFile, filterPayments, paymentCsv, paymentMethod, paymentReceipt, paymentSummary } from '../payments';
+import { downloadPaymentFile, filterPayments, isFreeActivation, paymentCsv, paymentMethod, paymentReceipt, paymentSummary } from '../payments';
 
 function PaymentDetails({ payment, onClose, onReceipt, disabled }) {
   const dialog = useRef(null);
@@ -23,7 +23,7 @@ function PaymentDetails({ payment, onClose, onReceipt, disabled }) {
         <div><dt>Service</dt><dd>{payment.serviceLabel || 'Care payment'}</dd></div>
         <div><dt>Payment method</dt><dd>{paymentMethod(payment.provider)}</dd></div>
         <div><dt>Created</dt><dd>{when(payment.createdAt)}</dd></div>
-        {payment.status === 'successful' ? <div><dt>Paid</dt><dd>{when(payment.paidAt || payment.createdAt)}</dd></div> : null}
+        {payment.status === 'successful' ? <div><dt>{isFreeActivation(payment) ? 'Activated' : 'Paid'}</dt><dd>{when(payment.paidAt || payment.createdAt)}</dd></div> : null}
         <div><dt>Payment ID</dt><dd>{payment.id}</dd></div>
         {payment.orderId ? <div><dt>Order ID</dt><dd>{payment.orderId}</dd></div> : null}
         {payment.subscriptionId ? <div><dt>Subscription ID</dt><dd>{payment.subscriptionId}</dd></div> : null}

@@ -23,7 +23,8 @@ export function paymentSummary(rows, now = new Date()) {
   };
 }
 
-export const paymentMethod = provider => provider === 'demo' ? 'Online payment' : provider || 'Not recorded';
+export const paymentMethod = provider => provider === 'free' ? 'No payment required' : provider === 'demo' ? 'Online payment' : provider || 'Not recorded';
+export const isFreeActivation = payment => Boolean(payment?.subscriptionId && payment.provider === 'free' && Number(payment.amount) === 0);
 
 function csvCell(value) {
   let text = String(value ?? '');
@@ -43,10 +44,11 @@ export function paymentCsv(rows) {
 export function paymentReceipt(payment) {
   if (payment.status !== 'successful') throw new Error('A receipt is available after payment is confirmed.');
   const amount = Number(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return ['SUVA VOICE', 'PAYMENT RECEIPT', '', `Reference: ${payment.transactionRef}`,
+  const free = isFreeActivation(payment);
+  return ['SUVA VOICE', free ? 'SUBSCRIPTION CONFIRMATION' : 'PAYMENT RECEIPT', '', `Reference: ${payment.transactionRef}`,
     `Customer: ${payment.customerName || 'Not recorded'}`, `Service: ${payment.serviceLabel || 'Care payment'}`,
     `Date: ${when(payment.paidAt || payment.createdAt)}`, `Method: ${paymentMethod(payment.provider)}`,
-    `Total paid: ${payment.currency || 'LKR'} ${amount}`, '', 'Thank you for choosing Suva Voice.'].join('\n');
+    `${free ? 'Plan fee' : 'Total paid'}: ${payment.currency || 'LKR'} ${amount}`, '', 'Thank you for choosing Suva Voice.'].join('\n');
 }
 
 export function downloadPaymentFile(content, filename, type = 'text/plain;charset=utf-8') {

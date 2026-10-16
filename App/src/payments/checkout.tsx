@@ -22,9 +22,9 @@ export function PlansScreen() {
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
   return <Page title={'Care for the\nwhole family.'} subtitle="Find the right support for the people who matter." footer={<TextLink onPress={() => router.push('/payments')}>Payment history</TextLink>}>
     {loading || error ? <Loading error={error} retry={refresh} /> : plans.length ? plans.map(plan => <Card key={plan.id} tone={current === plan.id ? 'soft' : 'sage'}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Pill tone="screen">{current === plan.id ? 'CURRENT PLAN' : plan.billingPeriod.toUpperCase() + ' PLAN'}</Pill><Icon name="leaf" /></View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Pill tone="screen">{current === plan.id ? 'CURRENT PLAN' : Number(plan.priceLkr) === 0 ? 'FREE PLAN' : plan.billingPeriod.toUpperCase() + ' PLAN'}</Pill><Icon name="leaf" /></View>
       <IconTile name="heart" size={72} tone="screen" /><Copy kind="title">{plan.name}</Copy>
-      <Copy color={palette.muted}>{planDescription(plan.description)}</Copy><Copy kind="title">{money(plan.priceLkr)}<Copy color={palette.muted}>{' / ' + period(plan.billingPeriod)}</Copy></Copy>
+      <Copy color={palette.muted}>{planDescription(plan.description)}</Copy><Copy kind="title">{Number(plan.priceLkr) === 0 ? 'Free' : <>{money(plan.priceLkr)}<Copy color={palette.muted}>{' / ' + period(plan.billingPeriod)}</Copy></>}</Copy>
       {(plan.services || []).map(service => <Copy kind="label" key={service}>{'✓ ' + service}</Copy>)}
       <Button disabled={current === plan.id} onPress={() => router.push({ pathname: '/payments/checkout', params: { kind: 'plan', id: plan.id } })}>{current === plan.id ? 'Your current plan' : 'Review this plan'}</Button>
     </Card>) : <Notice text="No plans are available at the moment. Please check again later." />}
@@ -56,6 +56,7 @@ export function CheckoutScreen() {
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const hasDelivery = ['grocery', 'essential'].includes(order?.type || '');
   const amount = isPlan ? plan?.priceLkr : order?.totalAmount;
+  const isFreePlan = isPlan && Boolean(plan) && Number(amount) === 0;
   const existing = order?.payments?.find(p => p.status === 'successful') || order?.payments?.find(p => p.status === 'pending');
   const blocked = !isPlan && (['cancelled', 'completed'].includes(order?.status || '') || !(Number(amount) > 0));
 
@@ -95,7 +96,7 @@ export function CheckoutScreen() {
       const deliveryIssues = hasDelivery ? validateDelivery(delivery) : {};
       if (Object.keys(deliveryIssues).length) { changeStep(3); setErrors(deliveryIssues); return; }
     }
-    const issues = { ...(Number(amount) > 0 ? validateCard(card) : {}), ...(!sameBilling ? Object.fromEntries(Object.entries(validateDelivery(billing)).map(([key, value]) => ['billing_' + key, value])) : {}) };
+    const issues = { ...(Number(amount) > 0 ? validateCard(card) : {}), ...(Number(amount) > 0 && !sameBilling ? Object.fromEntries(Object.entries(validateDelivery(billing)).map(([key, value]) => ['billing_' + key, value])) : {}) };
     setErrors(issues);
     if (Object.keys(issues).length) return;
     pressLock.current = true; setBusy(true); setError(''); Keyboard.dismiss();
@@ -104,9 +105,9 @@ export function CheckoutScreen() {
     finally { setBusy(false); pressLock.current = false; setCard({ number: '', expiry: '', cvv: '', name: '' }); }
   }
   const title = isPlan ? (step === 1 ? 'Care for the\nwhole family.' : 'One step\nto more care.') : ['A little care,\non its way.', 'Let’s stay\nin touch.', hasDelivery ? 'Where should\nwe deliver?' : 'Your care,\nall arranged.', 'A little closer\nto peace of mind.'][step - 1];
-  const subtitle = isPlan ? (step === 1 ? 'Review your plan before continuing.' : 'Choose how to pay for ' + (plan?.name || 'your plan') + '.') : ['Review your order before you continue.', 'Review your contact details for this checkout.', hasDelivery ? 'Choose where your care essentials arrive.' : 'Confirm the service requested for your loved one.', 'Choose how you’d like to pay.'][step - 1];
+  const subtitle = isFreePlan ? 'Start with essential support. No payment required.' : isPlan ? (step === 1 ? 'Review your plan before continuing.' : 'Choose how to pay for ' + (plan?.name || 'your plan') + '.') : ['Review your order before you continue.', 'Review your contact details for this checkout.', hasDelivery ? 'Choose where your care essentials arrive.' : 'Confirm the service requested for your loved one.', 'Choose how you’d like to pay.'][step - 1];
   const footer = !loading && amount !== undefined ? <>
-    {existing ? <Button onPress={() => showResult({ state: 'recorded', payment: { ...existing, orderId: order?.id } })}>View payment status</Button> : <Button disabled={blocked} busy={busy} onPress={step === 4 ? pay : next}>{blocked ? 'Payment unavailable' : step === 4 ? (Number(amount) === 0 ? 'Activate free plan' : 'Pay ' + money(amount)) : isPlan ? 'Continue to payment' : ['Continue to contact', hasDelivery ? 'Continue to delivery' : 'Review service', 'Continue to payment'][step - 1]}</Button>}
+    {existing ? <Button onPress={() => showResult({ state: 'recorded', payment: { ...existing, orderId: order?.id } })}>View payment status</Button> : <Button disabled={blocked} busy={busy} onPress={isFreePlan || step === 4 ? pay : next}>{blocked ? 'Payment unavailable' : isFreePlan ? 'Activate free plan' : step === 4 ? 'Pay ' + money(amount) : isPlan ? 'Continue to payment' : ['Continue to contact', hasDelivery ? 'Continue to delivery' : 'Review service', 'Continue to payment'][step - 1]}</Button>}
   </> : null;
 
   return <Page title={title} subtitle={subtitle} step={isPlan ? undefined : step} back={back} footer={footer} resetKey={String(step)}>
@@ -114,13 +115,13 @@ export function CheckoutScreen() {
       <Notice text={error} error />
       {step === 1 && isPlan && plan ? <>
         <Card tone="sage">
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Pill tone="screen">{plan.billingPeriod.toUpperCase() + ' PLAN'}</Pill><Icon name="leaf" /></View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Pill tone="screen">{isFreePlan ? 'FREE PLAN' : plan.billingPeriod.toUpperCase() + ' PLAN'}</Pill><Icon name="leaf" /></View>
           <IconTile name="heart" size={86} tone="screen" /><Copy kind="title">{plan.name}</Copy>
-          <Copy color={palette.muted}>{planDescription(plan.description)}</Copy><Copy kind="display">{money(plan.priceLkr)}</Copy><Copy color={palette.muted}>{'per ' + period(plan.billingPeriod)}</Copy>
-          <Divider /><Line label="Billing period" value={'One ' + period(plan.billingPeriod)} /><Line label="Total today" value={money(plan.priceLkr)} strong />
+          <Copy color={palette.muted}>{planDescription(plan.description)}</Copy><Copy kind="display">{isFreePlan ? 'Free' : money(plan.priceLkr)}</Copy>{!isFreePlan ? <Copy color={palette.muted}>{'per ' + period(plan.billingPeriod)}</Copy> : null}
+          <Divider />{!isFreePlan ? <Line label="Billing period" value={'One ' + period(plan.billingPeriod)} /> : null}<Line label="Total today" value={money(plan.priceLkr)} strong />
         </Card>
-        <Info name="shield" title={'One simple ' + plan.billingPeriod + ' payment'} detail="Review your subscription in the app." />
-        <Info name="receipt" title="Easy-to-find receipts" detail="Every payment stays in your history." />
+        <Info name="shield" title={isFreePlan ? 'No card needed' : 'One simple ' + plan.billingPeriod + ' payment'} detail={isFreePlan ? 'Activate your free plan and start using its benefits.' : 'Review your subscription in the app.'} />
+        <Info name="receipt" title={isFreePlan ? 'Your plan, always close' : 'Easy-to-find receipts'} detail={isFreePlan ? 'Find your active plan in Subscriptions.' : 'Every payment stays in your history.'} />
       </> : null}
       {step === 1 && !isPlan && order ? <>
         <Card tone="sage">

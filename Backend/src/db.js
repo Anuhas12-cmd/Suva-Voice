@@ -59,6 +59,7 @@ async function open() {
       logger.info('Created the SQL database with the demo accounts');
     }
   }
+  await db.exec(fs.readFileSync(join(databaseRoot, 'migrations/001-free-essential-plan.sql'), 'utf8'));
   const check = await db.query('SELECT count(*)::int AS total FROM users');
   logger.info(`SQL database ready at ${dataDir} (${check.rows[0].total} accounts)`);
 }

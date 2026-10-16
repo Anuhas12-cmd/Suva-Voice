@@ -229,7 +229,7 @@ export async function seed() {
     await client.query(
       `INSERT INTO subscription_plans (id, name, code, description, price_lkr, billing_period, services, active, demo_pricing)
        VALUES
-       ($1, 'Essential Check-in', 'essential', 'Illustrative demo price. Daily wellness call and missed-call alerts.', 1500, 'monthly', $2::jsonb, true, true),
+       ($1, 'Essential Check-in', 'essential', 'Daily wellness call and missed-call alerts.', 0, 'monthly', $2::jsonb, true, false),
        ($3, 'Family Care', 'family', 'Illustrative demo price. Check-ins, reminders, escalation, and care orders.', 3500, 'monthly', $4::jsonb, true, true),
        ($5, 'Complete Care', 'complete', 'Illustrative demo price. Family Care plus doctor and transport assistance.', 6500, 'monthly', $6::jsonb, true, true)`,
       [
