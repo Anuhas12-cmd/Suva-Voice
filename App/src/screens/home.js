@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, ScrollView, View } from 'react-native';
 import { api } from '../api';
 import { errorsFrom, label, when } from '../format';
@@ -24,7 +24,7 @@ export function Home({ go, user, tick }) {
         <Image source={require('../../assets/icon.png')} style={{ width: 52, height: 52, borderRadius: 16 }} />
         <View style={{ flex: 1 }}>
           <Title>{hello}, {user?.fullName?.split(' ')[0]}</Title>
-          <Text>Let's care for your loved ones today.</Text>
+          <Text>Let’s care for your loved ones today.</Text>
         </View>
       </View>
       <Image source={require('../../assets/photos/family-garden.jpg')} style={{ width: '100%', height: 104, borderRadius: 22 }} resizeMode="cover" />
@@ -32,7 +32,7 @@ export function Home({ go, user, tick }) {
       {data ? (
         <>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Stat label="Today's check-in" value={`${data.today.completed} / ${data.today.expected}`} hint={data.today.label} />
+            <Stat label="Today’s check-in" value={`${data.today.completed} / ${data.today.expected}`} hint={data.today.label} />
             <Stat label="Emergency" value={data.emergency.label} hint={data.emergency.openCount ? 'Needs attention' : 'All clear'} alert={Boolean(data.emergency.openCount)} />
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -141,8 +141,8 @@ export function LovedProfile({ go, params, tick }) {
   const [data, setData] = useState(null);
   const [contact, setContact] = useState({ fullName: '', phone: '', relationship: 'Daughter', priority: '1' });
   const [error, setError] = useState('');
-  function load() { api(`/api/elderly/${params.id}`).then(setData).catch((err) => setError(err.message)); }
-  useEffect(() => { load(); }, [params.id, tick]);
+  const load = useCallback(() => { api(`/api/elderly/${params.id}`).then(setData).catch((err) => setError(err.message)); }, [params.id]);
+  useEffect(() => { load(); }, [load, tick]);
   if (!data) return <Screen><Text>{error || 'Loading profile…'}</Text></Screen>;
   const schedule = data.schedules?.[0];
   return (

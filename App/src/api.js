@@ -60,6 +60,7 @@ export async function setApiBase(url) {
   return clean;
 }
 
+/** @param {string} path @param {{method?: string, body?: unknown, token?: string | null}} [options] */
 export async function api(path, { method = 'GET', body, token } = {}) {
   const auth = token === undefined ? await AsyncStorage.getItem(TOKEN) : token;
   const response = await fetch(`${await getApiBase()}${path}`, {
@@ -74,6 +75,7 @@ export async function api(path, { method = 'GET', body, token } = {}) {
   if (!response.ok) {
     const error = new Error(json.error?.message || 'Request failed');
     error.details = json.error?.details;
+    error.status = response.status;
     throw error;
   }
   return json.data;

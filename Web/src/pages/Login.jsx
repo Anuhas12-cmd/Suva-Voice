@@ -4,7 +4,7 @@ import { api, useAuth } from '../api';
 import { ErrorText } from '../components/ui';
 
 export default function Login() {
-  const { signIn } = useAuth();
+  const { signIn, sessionExpired } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ identifier: 'admin@suvavoice.lk', password: 'Admin@12345' });
   const [mode, setMode] = useState('login');
@@ -23,10 +23,11 @@ export default function Login() {
     setNotice('');
     try {
       if (mode === 'forgot') {
-        const data = await api('/api/auth/forgot-password', { method: 'POST', body: { identifier: form.identifier } });
+        const data = await api('/api/auth/forgot-password', { method: 'POST', body: { identifier: form.identifier }, token: null });
         if (data.demoResetToken) {
           const reset = await api('/api/auth/reset-password', {
             method: 'POST',
+            token: null,
             body: { token: data.demoResetToken, password: form.password }
           });
           signIn(reset.token, reset.user);
@@ -37,7 +38,7 @@ export default function Login() {
         setNotice('If that account exists, a reset message was recorded.');
         return;
       }
-      const data = await api('/api/auth/login', { method: 'POST', body: form });
+      const data = await api('/api/auth/login', { method: 'POST', body: form, token: null });
       if (!['admin', 'staff'].includes(data.user.role)) {
         throw new Error('Use a Suva Voice administrator or staff account.');
       }
@@ -74,6 +75,7 @@ export default function Login() {
           <h2>{mode === 'login' ? 'Welcome Back' : 'Reset password'}</h2>
           <p className="lede">{mode === 'login' ? 'Sign in to your Suva Voice account' : 'Set a new password for a staff account. Demo mode returns the reset token immediately.'}</p>
           <ErrorText error={error} />
+          {sessionExpired ? <p className="notice" role="status">Your session has ended. Please sign in again to view your records.</p> : null}
           {notice ? <div className="ok">{notice}</div> : null}
           <label>Email Address
             <input value={form.identifier} onChange={(event) => set('identifier', event.target.value)} autoComplete="username" />

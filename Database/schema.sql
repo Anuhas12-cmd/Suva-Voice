@@ -302,6 +302,11 @@ CREATE TABLE IF NOT EXISTS subscription_plans (
   CONSTRAINT subscription_plans_code_key UNIQUE (code)
 );
 
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  name text PRIMARY KEY,
+  applied_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS subscriptions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_id uuid NOT NULL REFERENCES customers(id) ON DELETE CASCADE,

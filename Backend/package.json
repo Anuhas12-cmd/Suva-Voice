@@ -10,6 +10,7 @@
     "setup": "node scripts/setup.js",
     "seed": "node scripts/seed.js",
     "unit": "node scripts/unit.js",
+    "test:plans": "node --test tests/free-plan.test.js",
     "test": "node scripts/unit.js && node scripts/acceptance.js"
   },
   "dependencies": {

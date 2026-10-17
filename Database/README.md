@@ -6,6 +6,16 @@ Starting the API creates `Database\data` from those files when that folder is mi
 
 `npm run setup` from `Backend` replaces those saved rows with the original demo accounts.
 
+## Free Essential Check-in plan
+
+Essential Check-in now costs LKR 0. Family Care and Complete Care keep their existing prices and benefits. Existing subscriptions retain their IDs; old payments retain their original amounts.
+
+On API startup, `migrations/001-free-essential-plan.sql` applies the price update once to existing installations. Restart the API after pulling this change; no database reset or setup command is needed. `schema_migrations` records the completed update so later admin price changes survive restarts and SQL export/import.
+
+Free activations bypass the payment provider. They retain a successful zero-amount ledger record with `provider = 'free'` for the existing confirmation/history API, and do not increase revenue totals. The existing monthly subscription period is retained.
+
+Run `npm run test:plans` in `Backend` to check upgrade preservation, activation without a configured provider, paid-plan behavior, restart safety and SQL export/import. Tests use a separate temporary database, never `Database/data`.
+
 ## Tables
 
 Users, customers, elderly profiles, emergency contacts, call schedules, call records, call responses, alerts, alert escalations, reminders, service providers, care orders, care order items, delivery events, doctor appointments, transport requests, subscription plans, subscriptions, payments, notifications, support requests, audit logs, and one system settings row.

@@ -1,10 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import { expireAdminSession, SESSION_ENDED } from './session';
 
 export const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:4000';
 
 export async function api(path, { method = 'GET', body, token } = {}) {
-  const auth = token ?? localStorage.getItem('sv_admin_token');
+  const auth = token === undefined ? localStorage.getItem('sv_admin_token') : token;
   const response = await fetch(`${API}${path}`, {
     method,
     headers: {
@@ -15,8 +16,10 @@ export async function api(path, { method = 'GET', body, token } = {}) {
   });
   const json = await response.json().catch(() => ({}));
   if (!response.ok) {
+    if (response.status === 401 && expireAdminSession(auth)) window.dispatchEvent(new Event(SESSION_ENDED));
     const error = new Error(json.error?.message || 'Request failed');
     error.details = json.error?.details;
+    error.status = response.status;
     throw error;
   }
   return json.data;
@@ -31,6 +34,13 @@ export function AuthProvider({ children }) {
   });
   const [token, setToken] = useState(() => localStorage.getItem('sv_admin_token'));
   const [liveTick, setLiveTick] = useState(0);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    function ended() { setToken(null); setUser(null); setSessionExpired(true); }
+    window.addEventListener(SESSION_ENDED, ended);
+    return () => window.removeEventListener(SESSION_ENDED, ended);
+  }, []);
 
   useEffect(() => {
     if (!token) return undefined;
@@ -42,7 +52,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!token) return undefined;
     let cancelled = false;
-    api('/api/auth/me')
+    api('/api/auth/me', { token })
       .then((fresh) => {
         if (cancelled || !fresh?.fullName) return;
         localStorage.setItem('sv_admin_user', JSON.stringify(fresh));
@@ -59,6 +69,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('sv_admin_user', JSON.stringify(nextUser));
     setToken(nextToken);
     setUser(nextUser);
+    setSessionExpired(false);
   }
 
   async function signOut() {
@@ -74,7 +85,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, liveTick, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, token, liveTick, sessionExpired, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

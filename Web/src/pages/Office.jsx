@@ -1,49 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, useAuth } from '../api';
 import { label, money, when } from '../format';
 import { Badge, ErrorText, Modal } from '../components/ui';
-
-export function Payments() {
-  const { liveTick } = useAuth();
-  const [data, setData] = useState([]);
-  const [status, setStatus] = useState('');
-  useEffect(() => { api(`/api/payments?status=${status}`).then((rows) => setData(Array.isArray(rows) ? rows : [])).catch(() => {}); }, [status, liveTick]);
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
-  const successful = data.filter((item) => item.status === 'successful');
-  const month = successful.filter((item) => new Date(item.paidAt || item.createdAt) >= monthStart);
-  const pending = data.filter((item) => item.status === 'pending');
-  return (
-    <>
-      <div className="page-head"><div><h1>Payments</h1><p>Demo ledger in Sri Lankan rupees. No card is charged.</p></div></div>
-      <section className="stats">
-        <article className="stat"><span>Successful total</span><strong>{money(successful.reduce((sum, item) => sum + Number(item.amount), 0))}</strong></article>
-        <article className="stat"><span>Records</span><strong>{data.length}</strong></article>
-        <article className="stat"><span>This month</span><strong>{money(month.reduce((sum, item) => sum + Number(item.amount), 0))}</strong></article>
-        <article className="stat"><span>Pending</span><strong>{money(pending.reduce((sum, item) => sum + Number(item.amount), 0))}</strong></article>
-      </section>
-      <section className="panel">
-        <label>Status
-          <select value={status} onChange={(event) => setStatus(event.target.value)}>
-            <option value="">All</option>
-            <option value="successful">Successful</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-          </select>
-        </label>
-        <table>
-          <thead><tr><th>Reference</th><th>Customer</th><th>Description</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
-          <tbody>
-            {data.map((item) => (
-              <tr key={item.id}><td>{item.transactionRef}</td><td>{item.customerName}</td><td>{item.serviceLabel}</td><td>{money(item.amount)}</td><td><Badge value={item.status} /></td><td>{when(item.createdAt)}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-    </>
-  );
-}
 
 const blankPlan = { name: '', code: '', priceLkr: 2000, description: '', services: 'Daily wellness call\nEmergency alerts', active: true };
 
@@ -54,51 +13,73 @@ export function Subscriptions() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(blankPlan);
   const [error, setError] = useState('');
-  async function load() {
-    setPlans(await api('/api/subscriptions/plans'));
-    setPeople(await api('/api/subscriptions'));
-  }
-  useEffect(() => { load().catch(() => {}); }, [liveTick]);
+  const [loadError, setLoadError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [refresh, setRefresh] = useState(0);
+  useEffect(() => {
+    let current = true;
+    setLoading(true);
+    Promise.all([api('/api/subscriptions/plans'), api('/api/subscriptions')])
+      .then(([nextPlans, nextPeople]) => {
+        if (!current) return;
+        if (!Array.isArray(nextPlans) || !Array.isArray(nextPeople)) throw new Error('Subscription records could not be loaded. Please refresh.');
+        setPlans(nextPlans); setPeople(nextPeople); setLoaded(true); setLoadError('');
+      })
+      .catch(error => { if (current) setLoadError(error.message); })
+      .finally(() => { if (current) setLoading(false); });
+    return () => { current = false; };
+  }, [liveTick, refresh]);
 
   async function save(event) {
     event.preventDefault();
     setError('');
+    setBusy(true);
     try {
       await api('/api/subscriptions/plans', { method: 'POST', body: { ...form, priceLkr: Number(form.priceLkr), services: form.services.split('\n').filter(Boolean) } });
       setOpen(false);
       setForm(blankPlan);
-      await load();
+      setRefresh(value => value + 1);
     } catch (err) {
       setError(err.message);
-    }
+    } finally { setBusy(false); }
   }
   async function toggle(plan) {
-    await api(`/api/subscriptions/plans/${plan.id}`, { method: 'PATCH', body: { active: !plan.active } });
-    await load();
+    setBusy(true);
+    try {
+      await api(`/api/subscriptions/plans/${plan.id}`, { method: 'PATCH', body: { active: !plan.active } });
+      setRefresh(value => value + 1);
+    } catch (error) { setLoadError(error.message); }
+    finally { setBusy(false); }
   }
 
   return (
     <>
-      <div className="page-head"><div><h1>Subscriptions</h1><p>Illustrative demo prices in LKR. They are not a commercial price list.</p></div>{user.role === 'admin' ? <button className="btn" type="button" onClick={() => setOpen(true)}>Create plan</button> : null}</div>
-      <section className="grid-3">
+      <div className="page-head"><div><h1>Subscriptions</h1><p>Manage care plans and view subscribed customers.</p></div><div className="actions"><button className="btn secondary" type="button" disabled={loading} onClick={() => setRefresh(value => value + 1)}>Refresh</button>{user.role === 'admin' ? <button className="btn" type="button" disabled={busy || loading} onClick={() => { setError(''); setOpen(true); }}>Create plan</button> : null}</div></div>
+      <ErrorText error={loadError} />
+      {loading ? <p className="muted" role="status">{loaded ? 'Refreshing subscriptions…' : 'Loading subscriptions…'}</p> : null}
+      {loadError && loaded ? <p className="muted">Showing previously loaded subscriptions. Refresh to try again.</p> : null}
+      {loaded ? <><section className="grid-3">
         {plans.map((plan) => (
           <article className="panel" key={plan.id}>
             <div className="row-between"><h2>{plan.name}</h2><Badge value={plan.active ? 'active' : 'disabled'} /></div>
-            <strong>{money(plan.priceLkr)} / {plan.billingPeriod}</strong>
-            <p>{plan.description}</p>
+            <strong>{Number(plan.priceLkr) === 0 ? 'Free' : money(plan.priceLkr) + ' / ' + plan.billingPeriod}</strong>
+            <p>{String(plan.description || '').replace(/^Illustrative demo price\.\s*/i, '')}</p>
             <ul>{(plan.services || []).map((item) => <li key={item}>{item}</li>)}</ul>
             <p className="tiny">{people.filter((item) => item.planId === plan.id && item.status === 'active').length} subscribed</p>
-            {user.role === 'admin' ? <button className="btn secondary" type="button" onClick={() => toggle(plan)}>{plan.active ? 'Deactivate' : 'Activate'}</button> : null}
+            {user.role === 'admin' ? <button className="btn secondary" type="button" disabled={busy || loading} onClick={() => toggle(plan)}>{plan.active ? 'Deactivate' : 'Activate'}</button> : null}
           </article>
         ))}
       </section>
-      <section className="panel">
+      {!plans.length ? <p className="muted">No care plans have been created yet.</p> : null}
+      <section className="panel table-wrap">
         <h2>Subscribed customers</h2>
         <table>
-          <thead><tr><th>Customer</th><th>Plan</th><th>Status</th><th>Since</th></tr></thead>
-          <tbody>{people.map((item) => <tr key={item.id}><td>{item.customerName}</td><td>{item.planName}</td><td><Badge value={item.status} /></td><td>{when(item.startedAt)}</td></tr>)}</tbody>
+          <thead><tr><th>Customer</th><th>Plan</th><th>Status</th><th>Since</th><th>Details</th></tr></thead>
+          <tbody>{people.length ? people.map((item) => <tr key={item.id}><td>{item.customerName}</td><td>{item.planName}</td><td><Badge value={item.status} /></td><td>{when(item.startedAt)}</td><td><Link className="btn secondary" to={'/customers/' + item.customerId} aria-label={'View customer ' + item.customerName}>View customer</Link></td></tr>) : <tr><td colSpan={5}>No customers have subscribed yet. New mobile subscriptions will appear here.</td></tr>}</tbody>
         </table>
-      </section>
+      </section></> : null}
       {open ? (
         <Modal title="Create plan" onClose={() => setOpen(false)}>
           <form className="stack" onSubmit={save}>
@@ -108,7 +89,7 @@ export function Subscriptions() {
             <label>Price (LKR)<input type="number" value={form.priceLkr} onChange={(event) => setForm({ ...form, priceLkr: event.target.value })} /></label>
             <label>Description<textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
             <label>Services, one per line<textarea value={form.services} onChange={(event) => setForm({ ...form, services: event.target.value })} /></label>
-            <button className="btn" type="submit">Save plan</button>
+            <button className="btn" type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save plan'}</button>
           </form>
         </Modal>
       ) : null}

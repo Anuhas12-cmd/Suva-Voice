@@ -162,7 +162,7 @@ export function Settings({ go, user, setUser, onLogout }) {
             <Switch accessibilityLabel={name} value={flags[key]} onValueChange={(value) => setFlags({ ...flags, [key]: value })} />
           </View>
         ))}
-        <Text>Emergency notifications stay on. Each check-in is spoken in that loved one's language: English, Sinhala, or Tamil.</Text>
+        <Text>Emergency notifications stay on. Each check-in is spoken in that loved one’s language: English, Sinhala, or Tamil.</Text>
         <Text style={{ fontWeight: '800' }}>App language</Text>
         <Chips options={[['en', 'English'], ['si', 'Sinhala'], ['ta', 'Tamil']]} value={flags.preferredLanguage} onChange={(preferredLanguage) => setFlags({ ...flags, preferredLanguage })} />
         <Btn onPress={save}>Save settings</Btn>
