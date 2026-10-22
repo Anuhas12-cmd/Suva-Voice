@@ -13,6 +13,7 @@ process.env.JWT_SECRET = 'free-plan-test-only-jwt-secret';
 process.env.VOICE_WEBHOOK_SECRET = 'free-plan-test-only-voice-secret';
 const { ensureDatabase, query, pool } = await import('../src/db.js');
 const { config } = await import('../src/config.js');
+const { advanceStatus } = await import('../src/services/calls.js');
 const { changePlan } = await import('../src/services/billing.js');
 const { writeDataSql } = await import('../src/snapshot.js');
 const essential = '50000000-0000-4000-8000-000000000001';
@@ -20,6 +21,18 @@ const family = '50000000-0000-4000-8000-000000000002';
 const customer = { id: '10000000-0000-4000-8000-000000000002', customerId: '20000000-0000-4000-8000-000000000002', role: 'customer' };
 let previousPayments;
 let previousSubscriptions;
+
+test('late concurrent voice events cannot move a check-in backwards', async () => {
+  const { rows } = await query('SELECT id FROM call_records ORDER BY started_at LIMIT 1');
+  const callId = rows[0].id;
+  await query("UPDATE call_records SET status = 'failed' WHERE status IN ('dialing','ringing','connected','playing','waiting_dtmf')");
+  await query("UPDATE call_records SET status = 'dialing', answered_at = NULL, ended_at = NULL WHERE id = $1", [callId]);
+  await Promise.all(['waiting_dtmf', 'playing', 'connected', 'ringing'].map((status) => advanceStatus(callId, status)));
+  const final = (await query('SELECT status, answered_at FROM call_records WHERE id = $1', [callId])).rows[0];
+  assert.equal(final.status, 'waiting_dtmf');
+  assert.ok(final.answered_at);
+  await query("UPDATE call_records SET status = 'failed' WHERE id = $1", [callId]);
+});
 
 before(async () => {
   const legacy = new PGlite({ dataDir, fs: new NodeFS(dataDir) });

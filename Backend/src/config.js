@@ -13,10 +13,11 @@ function required(name) {
 }
 
 export const config = {
-  port: Number(process.env.API_PORT || 4000),
+  port: Number(process.env.PORT || process.env.API_PORT || 4000),
   jwtSecret: required('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '12h',
   demoMode: process.env.DEMO_MODE !== 'false',
+  openCallOnComputer: process.env.OPEN_CALL_ON_COMPUTER !== 'false',
   appUrl: process.env.APP_URL || 'http://localhost:8081',
   webUrl: process.env.WEB_URL || 'http://localhost:5173',
   localServerUrl: process.env.LOCAL_SERVER_URL || 'http://127.0.0.1:4100',

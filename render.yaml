@@ -1,0 +1,41 @@
+# Deploy the contents of Suva-Voice-main as the Git repository root.
+# PostgreSQL lives on Neon's Free plan; no paid Render database or disk is created.
+services:
+  - type: web
+    name: suva-voice-api
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --prefix Backend && npm ci --prefix LocalServer
+    startCommand: node scripts/start-hosted.mjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: VOICE_WEBHOOK_SECRET
+        generateValue: true
+      - key: WEB_URL
+        sync: false
+      - key: APP_URL
+        sync: false
+
+  - type: web
+    name: suva-voice-admin
+    runtime: static
+    buildCommand: npm ci --prefix Web --include=dev && npm run build --prefix Web
+    staticPublishPath: Web/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: VITE_API_URL
+        sync: false

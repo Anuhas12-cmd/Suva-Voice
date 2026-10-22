@@ -11,6 +11,8 @@
     "seed": "node scripts/seed.js",
     "unit": "node scripts/unit.js",
     "test:plans": "node --test tests/free-plan.test.js",
+    "test:hosting": "node --test tests/hosting.test.js",
+    "hosted:init": "node scripts/init-hosted.js",
     "test": "node scripts/unit.js && node scripts/acceptance.js"
   },
   "dependencies": {

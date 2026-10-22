@@ -1,7 +1,7 @@
 import { createServer } from 'http';
 import { app } from './app.js';
 import { config } from './config.js';
-import { ensureDatabase, pool, writeSnapshot } from './db.js';
+import { ensureDatabase, pool, writeSnapshot, usesHostedDatabase } from './db.js';
 import { logger } from './logger.js';
 import { attachSocket } from './realtime.js';
 import { releaseStaleLiveCalls } from './services/calls.js';
@@ -29,10 +29,12 @@ if (config.schedulerEnabled) {
   logger.info(`Scheduler checking every ${config.schedulerTickMs}ms`);
 }
 
-setInterval(() => {
+if (!usesHostedDatabase) {
+  setInterval(() => {
+    writeSnapshot().catch((error) => logger.error(`Could not save the SQL file: ${error.message}`));
+  }, 60_000);
   writeSnapshot().catch((error) => logger.error(`Could not save the SQL file: ${error.message}`));
-}, 60_000);
-writeSnapshot().catch((error) => logger.error(`Could not save the SQL file: ${error.message}`));
+}
 
 async function shutdown() {
   server.close();

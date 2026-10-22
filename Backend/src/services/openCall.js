@@ -14,7 +14,7 @@ function chromePath() {
 }
 
 export function openCallOnComputer(callId, token) {
-  if (!config.demoMode || process.platform !== 'win32' || !token) return false;
+  if (!config.demoMode || !config.openCallOnComputer || process.platform !== 'win32' || !token) return false;
   const url = `http://127.0.0.1:${config.port}/call/${callId}#token=${encodeURIComponent(token)}`;
   try {
     const chrome = chromePath();

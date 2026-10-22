@@ -165,10 +165,12 @@ export async function advanceStatus(callId, status) {
   await query(
     `UPDATE call_records
      SET status = $2,
-         answered_at = CASE WHEN $2 = 'connected' THEN COALESCE(answered_at, now()) ELSE answered_at END,
+         answered_at = CASE WHEN $2 IN ('connected', 'playing', 'waiting_dtmf') THEN COALESCE(answered_at, now()) ELSE answered_at END,
          updated_at = now()
      WHERE id = $1 AND status = ANY($3::text[])`,
-    [callId, status, LIVE]
+    // Check the allowed predecessor states atomically at UPDATE time. Remote
+    // database latency can let several webhook reads observe the same old state.
+    [callId, status, LIVE.slice(0, LIVE.indexOf(status) + 1)]
   );
   const full = await getCall(callId);
   if (full) emitCall(full);

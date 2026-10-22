@@ -9,3 +9,13 @@ npm-debug.log*
 .DS_Store
 coverage/
 .runtime/
+Database/data/
+**/.cxx/
+**/.cxx-before-usb-fix/
+**/.gradle/
+**/local.properties
+*.apk
+*.aab
+.env.*
+!.env.example
+.neon

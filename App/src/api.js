@@ -5,7 +5,7 @@ const TOKEN = 'sv_customer_token';
 const USER = 'sv_customer_user';
 const SERVER_KEY = 'sv_api_base';
 const EMULATOR_API = 'http://10.0.2.2:4000';
-const PHONE_API = 'http://192.168.122.13:4000';
+const DEVICE_API = process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:4000';
 
 function isAndroidEmulator() {
   if (Platform.OS !== 'android') return false;
@@ -23,13 +23,12 @@ function hostnameOf(url) {
 
 export function suggestedApiBase() {
   if (isAndroidEmulator()) return EMULATOR_API;
-  if (Platform.OS === 'android') return PHONE_API;
-  return process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:4000';
+  return DEVICE_API;
 }
 
 export function serverHint() {
   if (isAndroidEmulator()) return 'The emulator reaches this computer at http://10.0.2.2:4000.';
-  if (Platform.OS === 'android') return 'The phone and this computer must be on the same Wi-Fi.';
+  if (Platform.OS === 'android') return 'Use USB port forwarding, or enter this computer’s address when both devices are on the same Wi-Fi.';
   return undefined;
 }
 

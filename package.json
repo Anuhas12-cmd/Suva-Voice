@@ -3,8 +3,16 @@
   "private": true,
   "description": "Suva Voice — Care. Connect. Protect.",
   "scripts": {
+    "build": "node scripts/build.mjs",
+    "start:neon": "node --env-file-if-exists=Backend/.env --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/start-hosted.mjs",
+    "neon:init-db": "node Backend/scripts/init-hosted.js",
+    "test:neon": "node scripts/verify-neon.mjs",
     "setup": "node Backend/scripts/setup.js",
     "start": "node scripts/start.js",
     "test": "node Backend/scripts/unit.js && node Backend/scripts/acceptance.js"
+  },
+  "dependencies": {
+    "@neon/config": "^1.9.3",
+    "@neon/env": "^1.6.4"
   }
 }
